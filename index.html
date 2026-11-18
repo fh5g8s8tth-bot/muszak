@@ -50,7 +50,9 @@ header.w{padding-top:calc(env(safe-area-inset-top) + 10px)}
 .iv,.iv2{display:flex;align-items:center;gap:4px;color:var(--mute);white-space:nowrap}
 .it input{width:110px;min-height:44px;border:0;background:transparent;padding:0;text-align:right;color:var(--blue);font-size:17px;border-radius:0}
 .it input:focus{border:0;outline:none}
-.it input[type=time]{-webkit-appearance:none;appearance:none;width:auto;min-width:0;display:block;text-align:right}
+.it input[type=time]{-webkit-appearance:none;appearance:none;width:auto;min-width:0;display:block;text-align:right;height:44px;line-height:44px;padding:0;margin:0}
+.it input::-webkit-date-and-time-value{margin:0;line-height:44px}
+.it input::-webkit-datetime-edit{padding:0;line-height:44px}
 .it input::-webkit-date-and-time-value{text-align:right}
 .hdr{display:flex;justify-content:space-between;gap:10px}
 .gt{font-size:13px;color:var(--mute);margin:0 6px 7px;font-weight:500}
@@ -194,9 +196,11 @@ textarea{width:100%;min-height:80px;font:13px ui-monospace,monospace;border-radi
 .ver{display:block;font-size:12px;margin-top:4px;opacity:.7}
 
 .view{display:none}.view.on{display:block;animation:vin .32s cubic-bezier(.2,.8,.2,1)}
-@keyframes vin{from{opacity:0;transform:translateY(8px)}}
+@keyframes vin{from{opacity:0}}
 .vh{padding-top:calc(env(safe-area-inset-top) + 12px)}.vh h1{font-size:34px;font-weight:800;letter-spacing:-.025em;margin:6px 0 16px}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);padding:4px 6px calc(4px + env(safe-area-inset-bottom));background:light-dark(#ffffffe0,#000000e0);backdrop-filter:saturate(180%) blur(18px);-webkit-backdrop-filter:saturate(180%) blur(18px);border-top:1px solid var(--line)}
+.tabs::after{content:"";position:absolute;left:0;right:0;top:100%;height:120px;background:inherit;backdrop-filter:inherit;-webkit-backdrop-filter:inherit}
+html,body{min-height:100%}
 .tb{border:0;background:none;display:grid;justify-items:center;align-content:center;gap:3px;font-size:11px;font-weight:600;color:var(--mute);min-height:54px;cursor:pointer}
 .tb svg{width:25px;height:25px;transition:transform .2s}.tb.on{color:var(--blue)}.tb.on svg{transform:translateY(-1px) scale(1.06)}
 label.gear{position:relative;overflow:hidden}label.gear input{position:absolute;width:1px;height:1px;opacity:0}
@@ -351,7 +355,7 @@ label.gear{position:relative;overflow:hidden}label.gear input{position:absolute;
   </div>
   <textarea id="ctext" hidden readonly aria-label="Másolandó szöveg"></textarea>
   <p class="note">Éjfél után esti bérrel számol, szünetet nem von le. Egy műszakra koppintva átírhatod az idejét. Minden adat csak ezen a telefonon van.</p>
-  <p class="made" id="made">Made by <b>Claude</b><span class="ver">Mozi v7.1</span></p>
+  <p class="made" id="made">Made by <b>Claude</b><span class="ver">Mozi v7.2</span></p>
 </div></div>
 
 <nav class="tabs" id="tabs"><button class="tb press on" data-v="vHome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>Főoldal</span></button><button class="tb press" data-v="vMates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.6c2.6.2 4.4 1.9 5 5.4"/></svg><span>Kollégák</span></button><button class="tb press" data-v="vGoal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg><span>Cél</span></button><button class="tb press" data-v="vSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.3"/><circle cx="10" cy="17" r="2.3"/></svg><span>Beállítások</span></button></nav>
@@ -508,7 +512,12 @@ function renderHols(){
 
 /* events */
 document.addEventListener("pointerdown",ev=>{const b=ev.target.closest(".btn");if(!b)return;const r=b.getBoundingClientRect(),s=Math.max(r.width,r.height),sp=document.createElement("span");sp.className="rp";sp.style.cssText=`width:${s}px;height:${s}px;left:${ev.clientX-r.left-s/2}px;top:${ev.clientY-r.top-s/2}px`;b.appendChild(sp);setTimeout(()=>sp.remove(),520)});
-const mv=n=>{const[y,m]=cur.split("-").map(Number);cur=iso(new Date(y,m-1+n,1)).slice(0,7);openEdit=null;render()};
+const mv=n=>{const[y,m]=cur.split("-").map(Number);cur=iso(new Date(y,m-1+n,1)).slice(0,7);openEdit=null;render();
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;const E="cubic-bezier(.2,.8,.2,1)";
+  $("mname").animate([{transform:`translateX(${n*26}px)`,opacity:0},{transform:"none",opacity:1}],{duration:320,easing:E});
+  [$("hlbl"),$("msub")].forEach(el=>el.animate([{opacity:0},{opacity:1}],{duration:380,easing:E}));
+  $("net").animate([{transform:`translateX(${n*40}px) scale(.96)`,opacity:0,filter:"blur(4px)"},{transform:"none",opacity:1,filter:"blur(0)"}],{duration:420,easing:E});
+  $("list").animate([{transform:`translateX(${n*24}px)`,opacity:0},{transform:"none",opacity:1}],{duration:380,delay:40,easing:E,fill:"backwards"})};
 $("prev").onclick=()=>mv(-1);$("next").onclick=()=>mv(1);
 $("tg").onclick=()=>{const c=$("col"),o=!c.classList.contains("on");c.classList.toggle("on",o);$("tg").setAttribute("aria-expanded",o);$("tg").textContent=o?"Kevesebb":"Részletek"};
 $("list").addEventListener("click",ev=>{
