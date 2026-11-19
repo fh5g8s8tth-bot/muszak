@@ -415,15 +415,20 @@ label.gear{position:relative;overflow:hidden}label.gear input{position:absolute;
     <label class="it"><span>Havi cél</span><span class="iv"><input type="number" id="s_goal" inputmode="numeric" placeholder="nincs"> Ft</span></label>
     <label class="it"><span>Fizetés napja</span><span class="iv"><input type="number" id="s_payday" inputmode="numeric" placeholder="nincs" min="1" max="31"></span></label>
   </div>
-  <div class="gt">Nyitás hétköznap</div>
+  <div class="gt">Nyitás hétköznap, iskolaidőben</div>
   <div class="grp">
     <label class="it"><span>Kezdés</span><input type="time" id="s_nyH"></label>
     <label class="it"><span>Vége</span><input type="time" id="s_nyHEnd"></label>
   </div>
-  <div class="gt">Nyitás hétvégén és ünnepnap</div>
+  <div class="gt">Nyitás hétvégén, ünnepnap és nyári szünetben</div>
   <div class="grp">
     <label class="it"><span>Kezdés</span><input type="time" id="s_ny"></label>
     <label class="it"><span>Vége</span><input type="time" id="s_nyEnd"></label>
+  </div>
+  <div class="gt">Nyári szünet (csak a hónap és a nap számít)</div>
+  <div class="grp">
+    <label class="it"><span>Első nap</span><input type="date" id="s_szS"></label>
+    <label class="it"><span>Utolsó nap</span><input type="date" id="s_szE"></label>
   </div>
   <p class="note" style="margin-top:-12px">Csak ott számít, ahol nincs pontos idő (az Excelben „ny”, és nem töltöttél be képet). A képről beolvasott idő mindig felülírja.</p>
   <div class="gt">Zárás</div>
@@ -456,7 +461,7 @@ label.gear{position:relative;overflow:hidden}label.gear input{position:absolute;
   </div>
   <textarea id="ctext" hidden readonly aria-label="Másolandó szöveg"></textarea>
   <p class="note">Éjfél után esti bérrel számol, szünetet nem von le. Egy műszakra koppintva átírhatod az idejét. Minden adat csak ezen a telefonon van.</p>
-  <p class="made" id="made">Made by <b>Claude</b><span class="ver">Lumen v11.7</span></p>
+  <p class="made" id="made">Made by <b>Claude</b><span class="ver">Lumen v11.9</span></p>
 </div></div>
 
 <nav class="tabs" id="tabs"><button class="tb press on" data-v="vHome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>Főoldal</span></button><button class="tb press" data-v="vMates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.6c2.6.2 4.4 1.9 5 5.4"/></svg><span>Munkatársak</span></button><button class="tb press" data-v="vGoal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg><span>Cél</span></button><button class="tb press" data-v="vAch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><span>Jelvények</span></button><button class="tb press" data-v="vSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.3"/><circle cx="10" cy="17" r="2.3"/></svg><span>Beállítások</span></button></nav>
@@ -468,7 +473,7 @@ label.gear{position:relative;overflow:hidden}label.gear input{position:absolute;
 
 <script>
 {
-const DEF={name:"",r1:0,r2:0,hol:2,fee:0,goal:0,payday:0,ny:"09:00",nyEnd:"17:00",nyH:"11:00",nyHEnd:"18:00",z:"23:30",zStart:"18:00",mail:"arena@cinemacity.hu"};
+const DEF={name:"",r1:0,r2:0,hol:2,fee:0,goal:0,payday:0,ny:"09:00",nyEnd:"17:00",nyH:"11:00",nyHEnd:"18:00",z:"23:30",zStart:"18:00",mail:"arena@cinemacity.hu",szS:"2026-06-20",szE:"2026-08-31"};
 const $=id=>document.getElementById(id);
 const ls={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let S=Object.assign({},DEF,ls.get("mm.set",{}));
@@ -510,7 +515,10 @@ const isHol=d=>hols(+d.slice(0,4)).has(d);
 /* cellaszöveg -> időpont */
 /* nyitás: hétvégén/ünnepnap korábban nyit a mozi, hétköznap később */
 const wkend=d=>{if(!d)return false;const w=pd(d).getDay();return w===0||w===6||isHol(d)};
-const nyA=d=>tmin(d&&!wkend(d)?S.nyH:S.ny),nyB=d=>tmin(d&&!wkend(d)?S.nyHEnd:S.nyEnd);
+const /* nyári szünetben hétköznap is a hétvégi nyitás (9–17) érvényes; csak a hónap-nap számít, így minden évre jó */
+nyar=d=>{if(!d)return false;const m=d.slice(5),a=String(S.szS||DEF.szS).slice(5),b=String(S.szE||DEF.szE).slice(5);return a<=b?m>=a&&m<=b:m>=a||m<=b},
+schoolDay=d=>d&&!wkend(d)&&!nyar(d),
+nyA=d=>tmin(schoolDay(d)?S.nyH:S.ny),nyB=d=>tmin(schoolDay(d)?S.nyHEnd:S.nyEnd);
 function spec(raw,d){
   let t=(raw||"").toLowerCase().replace(/\s+/g,"").replace(/(\d)\.(\d)/g,"$1:$2").replace(/[–—]/g,"-");
   const num=x=>/^\d{1,2}(:\d{2})?$/.test(x)?tmin(x.includes(":")?x:x+":00"):null;
@@ -614,6 +622,13 @@ function openGone(d){const names=(DATA.names||[]).filter(n=>norm(n)!==norm(S.nam
     $("gn").onclick=()=>{LEAD[d]=1;ls.set("mm.lead",LEAD);closeSheet();render();toast("Rendben, marad leadásra kiírva.")};
     $("gc").onclick=async()=>{try{await navigator.clipboard.writeText(body());toast("Kimásolva.")}catch(x){toast("Nem sikerült másolni.")}};
     $("gx").onclick=()=>done("Leadva, nem számít bele a fizetésbe.")})}
+/* ---- lemondás vagy leadás: mindkettő kiveszi a fizetésből, csak a felirat és az összesítő más ---- */
+function openCanc(d){const fut=d>=today,dt=pd(d);
+  openSheet(`<h3>Mi lett ezzel a műszakkal?</h3><p>${HU_M[dt.getMonth()]} ${dt.getDate()}., ${HU_DL[dt.getDay()]} · bármelyiket választod, kiesik a fizetésből.</p>
+   <div class="f" style="grid-template-columns:1fr;flex:none"><button class="btn press" id="cl">Leadtam valakinek</button><button class="btn g press" id="cm">Lemondtam</button></div>`,()=>{
+    const fin=(k,msg)=>{delete LEAD[d];ls.set("mm.lead",LEAD);CANC[d]=k;ls.set("mm.canc",CANC);closeSheet();openEdit=null;render();toast(msg+(Object.keys(EXP).some(x=>x.startsWith(d+"@"))?" A naptárból kézzel töröld az eseményt.":""))};
+    $("cl").onclick=()=>{if(fut&&!eff(d).bad){closeSheet();setTimeout(()=>openGone(d),260)}else fin("leadva","Leadottnak jelölve.")};
+    $("cm").onclick=()=>fin("kézi","Lemondva, nem számít bele a fizetésbe.")})}
 /* ---- felvétel: átvett műszak, akár a posztból kiolvasva ---- */
 function parsePost(s){const t=String(s||"").toLowerCase().replace(/[–—]/g,"-");let d=null;
   const near=(mo,da)=>{let y=NOW.getFullYear(),x=`${y}-${pad(mo)}-${pad(da)}`;if(dd(today,x)<-60)x=`${y+1}-${pad(mo)}-${pad(da)}`;if(dd(today,x)>300)x=`${y-1}-${pad(mo)}-${pad(da)}`;return x};
@@ -670,10 +685,10 @@ function render(){
   $("list").innerHTML=rows.length?rows.map(({d,c})=>{
     const dt=pd(d),e=c.e,past=d<today;
     if(e.canc){const o=OV[d]?{a:tmin(OV[d].a),b:tmin(OV[d].b)}:spec(DATA.shifts[d],d),tt=o.bad?"":`${hm(o.a)} – ${hm(o.b)}`;
-      const ed2=openEdit===d?`<div class="ed"><p class="note" style="grid-column:1/-1;margin:0">${e.canc==="kép"?"A végleges beosztás képén nem szerepelsz ezen a napon, ezért lemondottnak vettem. Ha mégis dolgoztál, állítsd vissza.":e.canc==="leadva"?"Leadtad, valaki elvitte. Nem számít bele a fizetésbe.":"Lemondottnak jelölted, nem számít bele a fizetésbe."}</p><div class="bt"><button class="btn g press" data-unc="${d}">Mégsem mondtam le</button></div></div>`:"";
+      const ed2=openEdit===d?`<div class="ed"><p class="note" style="grid-column:1/-1;margin:0">${e.canc==="kép"?"A végleges beosztás képén nem szerepelsz ezen a napon, ezért lemondottnak vettem. Ha mégis dolgoztál, állítsd vissza.":e.canc==="leadva"?"Leadtad, valaki elvitte. Nem számít bele a fizetésbe.":"Lemondottnak jelölted, nem számít bele a fizetésbe."}</p><div class="bt"><button class="btn g press" data-unc="${d}">${e.canc==="leadva"?"Mégsem adtam le":"Mégsem mondtam le"}</button>${e.canc==="kép"?"":`<button class="btn g press" data-swc="${d}">${e.canc==="leadva"?"Inkább: lemondtam":"Inkább: leadtam"}</button>`}</div></div>`:"";
       return `<li class="sh cnc${past?" past":""}"><button class="row" data-ed="${d}" aria-expanded="${openEdit===d}"><span class="dt"><b>${dt.getDate()}</b><i>${HU_D[dt.getDay()]}</i></span><span><span class="tm"><s>${tt||"Műszak"}</s></span><span class="tags"><span class="x">${CNL[e.canc]||"lemondtad"}</span></span></span><span class="pay">0 Ft</span></button>${ed2}</li>`}
     const tg=[isHol(d)?'<span class="h">ünnepnap · dupla bér</span>':"",e.bad?'<span class="x">koppints, és add meg az időt</span>':"",e.est?kind(DATA.shifts[d]):"",svTag(d,e,c),mates(d,e,c),e.own?"átírtad":"",ADD[d]?'<span class="h">felvetted</span>':"",LEAD[d]?'<span class="wr">leadásra kiírva</span>':"",d===today?'<span class="h">ma</span>':""].filter(Boolean).join(" · ");
-    const ed=openEdit===d?`<div class="ed"><div class="edp"><div class="gt" style="margin:0 2px 8px">Veled ${d<today?"dolgozott":"dolgozik"}${(()=>{const L=svFor(d,e,c);return L.length?` · <span class="svt">SV: ${L.map(esc).join(", ")}</span>`:""})()}</div>${pplHtml(d)}</div><label class="l">Kezdés<input type="time" id="ea" value="${e.bad?"18:00":hm(e.a)}"></label><label class="l">Vége<input type="time" id="eb" value="${e.bad?"23:00":hm(c.end%1440)}"></label><label class="l" style="grid-column:1/-1">Jegyzet<textarea id="en" rows="2" placeholder="pl. sok néző volt">${esc(NOTES[d]||"")}</textarea></label><div class="bt"><button class="btn press" data-save="${d}">Mentés</button>${OV[d]?`<button class="btn g press" data-clr="${d}">Eredeti</button>`:""}</div>${d>=today?(e.bad?`<p class="note" style="grid-column:1/-1;margin:0">Leadáshoz előbb add meg fent az időt, és mentsd.</p>`:`<button class="btn g press lbtn" data-lead="${d}">${LEAD[d]?"Leadás: poszt újra / elvitték":"Leadom (Facebook-poszt)"}</button>`):""}${ADD[d]?`<button class="btn g press cbtn" data-unadd="${d}">Mégsem vettem fel</button>`:`<button class="btn g press cbtn" data-cnc="${d}">Lemondtam ezt a műszakot</button>`}</div>`:"";
+    const ed=openEdit===d?`<div class="ed"><div class="edp"><div class="gt" style="margin:0 2px 8px">Veled ${d<today?"dolgozott":"dolgozik"}${(()=>{const L=svFor(d,e,c);return L.length?` · <span class="svt">SV: ${L.map(esc).join(", ")}</span>`:""})()}</div>${pplHtml(d)}</div><label class="l">Kezdés<input type="time" id="ea" value="${e.bad?"18:00":hm(e.a)}"></label><label class="l">Vége<input type="time" id="eb" value="${e.bad?"23:00":hm(c.end%1440)}"></label><label class="l" style="grid-column:1/-1">Jegyzet<textarea id="en" rows="2" placeholder="pl. sok néző volt">${esc(NOTES[d]||"")}</textarea></label><div class="bt"><button class="btn press" data-save="${d}">Mentés</button>${OV[d]?`<button class="btn g press" data-clr="${d}">Eredeti</button>`:""}</div>${d>=today?(e.bad?`<p class="note" style="grid-column:1/-1;margin:0">Leadáshoz előbb add meg fent az időt, és mentsd.</p>`:`<button class="btn g press lbtn" data-lead="${d}">${LEAD[d]?"Leadás: poszt újra / elvitték":"Leadom (Facebook-poszt)"}</button>`):""}${ADD[d]?`<button class="btn g press cbtn" data-unadd="${d}">Mégsem vettem fel</button>`:`<button class="btn g press cbtn" data-cnc="${d}">Lemondtam / leadtam</button>`}</div>`:"";
     return `<li class="sh${past?" past":""}${d===today?" today":""}"><button class="row" data-ed="${d}" aria-expanded="${openEdit===d}"><span class="dt"><b>${dt.getDate()}${favOn(d)?'<sup class="fv">✦</sup>':""}${avOn(d)?'<sup class="avs">⚡</sup>':""}</b><i>${HU_D[dt.getDay()]}</i></span><span>${tmHtml(c)}${tg?`<span class="tags">${tg}</span>`:""}${NOTES[d]?`<span class="tags nte">📝 ${esc(NOTES[d])}</span>`:""}</span><span class="pay">${e.bad?"–":ft(c.pay)}</span></button>${ed}</li>`}).join(""):`<li class="empty">${DATA.at?"Ebben a hónapban nincs zöld műszakod.":"Nyomd meg a jobb felső gombot, és válaszd ki az Excelt a Letöltések mappából."}</li>`;
   {const[py,pm]=[mo===1?y-1:y,mo===1?12:mo-1],pk=`${py}-${pad(pm)}`,ps=mSum(pk),pv=ps.past+ps.fut,cel=$("cmp");
    if(DATA.at&&days.length&&pv>0){const df=Math.round((net-pv)/pv*100);cel.hidden=false;cel.className="cmp "+(df>=0?"up":"dn");cel.textContent=`${df>=0?"▲":"▼"} ${Math.abs(df)}% ${HU_HOZ[pm-1]} képest${isPast?"":" (beosztva)"}`}else cel.hidden=true}
@@ -765,7 +780,9 @@ $("list").addEventListener("click",ev=>{
     if("prev" in x){if(x.prev!=null)DATA.shifts[d]=x.prev;else delete DATA.shifts[d];if(x.prevCanc){CANC[d]=x.prevCanc;ls.set("mm.canc",CANC)}}
     else{const xs=X&&extract(X,S.name);if(xs){if(xs.shifts[d])DATA.shifts[d]=xs.shifts[d];else delete DATA.shifts[d]}else{const mx=((DATA.xm||{})[d]||[]).find(p=>norm(p[0])===norm(S.name||""));if(mx)DATA.shifts[d]=mx[1];else delete DATA.shifts[d]}}
     ls.set("mm.data",DATA);openEdit=null;render();toast(x.prevCanc==="leadva"?"Kivetted, újra leadottként szerepel.":"Kivetted");return}
-  if(cn){const d=cn.dataset.cnc;delete LEAD[d];ls.set("mm.lead",LEAD);CANC[d]="kézi";ls.set("mm.canc",CANC);openEdit=null;render();toast(Object.keys(EXP).some(k=>k.startsWith(d+"@"))?"Lemondva. A naptárból kézzel töröld az eseményt.":"Lemondva, nem számít bele a fizetésbe.");return}
+  if(cn){openCanc(cn.dataset.cnc);return}
+  const sw=ev.target.closest("[data-swc]");
+  if(sw){const d=sw.dataset.swc;CANC[d]=CANC[d]==="leadva"?"kézi":"leadva";ls.set("mm.canc",CANC);openEdit=null;render();toast(CANC[d]==="leadva"?"Átírva: leadtad.":"Átírva: lemondtad.");return}
   if(un){const d=un.dataset.unc;CANC[d]=0;ls.set("mm.canc",CANC);openEdit=null;render();toast("Visszaállítva");return}
   if(r){openEdit=openEdit===r.dataset.ed?null:r.dataset.ed;render()}
 });
@@ -812,7 +829,7 @@ $("copy").onclick=async()=>{
 };
 $("reset").onclick=()=>{EXP={};ls.set("mm.exp",EXP);toast("Kész. Figyelj, hogy ne kerüljenek kétszer a naptárba.");render()};
 
-const KEYS=["r1","r2","hol","fee","goal","payday","ny","nyEnd","nyH","nyHEnd","z","zStart","mail"];
+const KEYS=["r1","r2","hol","fee","goal","payday","ny","nyEnd","nyH","nyHEnd","z","zStart","mail","szS","szE"];
 const fill=()=>KEYS.forEach(k=>{$("s_"+k).value=S[k]||(typeof DEF[k]==="number"?"":DEF[k])});
 const save=()=>{ls.set("mm.set",S);fill();render()};
 KEYS.forEach(k=>{const el=$("s_"+k);el.addEventListener("change",()=>{const v=el.type==="number"?Number(el.value):el.value.trim();if(el.type==="number"&&!(v>=0))return;S[k]=v||DEF[k];save()})});
