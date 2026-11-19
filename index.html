@@ -11,6 +11,9 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-180.png">
 <title>Lumen</title>
+<script>/* a kiemelő szín már az indító animáció előtt érvényes; sötét módban kicsit világosabb árnyalat */
+function accSet(a){const r=document.documentElement.style;if(a)r.setProperty("--blue",`light-dark(${a},color-mix(in srgb,${a} 82%,#fff))`);else r.removeProperty("--blue")}
+try{accSet(JSON.parse(localStorage.getItem("mm.set")||"{}").accent)}catch(e){}</script>
 <style>
 /* VOICE: calm, exact, Apple-like utility; one thumb, one glance
    IDEA: a wallet pass for shift work — the month's pay up top, everything else as quiet cards
@@ -338,6 +341,38 @@ label.gear{position:relative;overflow:hidden}label.gear input{position:absolute;
 .booted .rise{animation:none!important}
 .rise{animation:rise .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--d,1s) + var(--i,0)*.06s)}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}}
+/* v12 – kinézet: üveg fejléc, haladáscsík, kiemelt következő műszak, kisebb mellékkártyák, rugós nyomás, üres állapotok */
+header.w{position:sticky;top:0;z-index:4;background:light-dark(#ffffffb8,#000000b8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);padding-bottom:6px;box-shadow:0 1px 0 transparent;transition:box-shadow .25s}
+header.w.sc{box-shadow:0 1px 0 var(--line)}
+.prog{margin:4px auto 10px;max-width:420px}
+.pbar{height:8px;border-radius:4px;background:var(--card);overflow:hidden;display:flex}
+.pbar i{display:block;height:100%;background:var(--blue);border-radius:4px 0 0 4px;width:0;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.pbar u{display:block;height:100%;background:color-mix(in srgb,var(--blue) 28%,transparent);width:0;transition:width .9s .1s cubic-bezier(.2,.8,.2,1)}
+.prog .gl b{color:var(--ink);font-weight:600}
+.hrow{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;margin-top:12px}
+.hrow .tg,.hrow .cmp{margin-top:0}
+.tg{display:inline-flex;align-items:center;gap:6px}.tg svg{width:16px;height:16px}
+.cmp{background:var(--card)!important;color:var(--mute)!important;font-weight:600;min-height:36px;line-height:28px}
+.cmp i{font-style:normal;font-weight:800}.cmp.up i{color:var(--blue)}.cmp.dn i{color:#e5484d}
+.nc.go.nxt{grid-template-columns:minmax(0,1fr) 12px;padding:18px 18px 16px;border-radius:22px}
+.nxt .nt{font-size:13px;font-weight:600;color:var(--blue)}
+.nxt .nv{font-size:20px;font-weight:700;letter-spacing:-.01em;margin-top:2px}
+.nxt .tmb{margin-top:6px}
+.nxt .chp{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.nxt .chp span{background:var(--bg);border-radius:999px;padding:4px 10px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}
+.nxt .chp .svt{color:var(--blue)}
+.nc.sm{grid-template-columns:30px minmax(0,1fr);gap:12px;padding:11px 14px;border-radius:16px}
+.nc.sm .ico{width:30px;height:30px;border-radius:9px}.nc.sm .ico svg{width:16px;height:16px}
+.nc.sm .nt{font-size:12px}.nc.sm .nv{font-size:15px;font-weight:600}
+.nv .bl{color:var(--blue);font-weight:700}
+.press,.btn,.tg,.gear,.chips button,.sw button,.mn button,.tb,button.nc,.hr{transition:transform .5s cubic-bezier(.3,1.7,.4,1),background-color .2s,opacity .2s,box-shadow .25s}
+.press:active,.btn:active,.tg:active,.gear:active,.chips button:active,.mn button:active,button.nc:active{transform:scale(.955);transition:transform .1s ease-out}
+.tb:active svg{transform:scale(.86);transition:transform .1s ease-out}
+.row{transition:transform .5s cubic-bezier(.3,1.7,.4,1)}.row:active{transform:scale(.982);transition:transform .1s ease-out}
+.empty .art{display:block;width:72px;height:72px;margin:4px auto 12px;color:var(--blue);fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;animation:bob 3.2s ease-in-out infinite}
+.empty .art .f2{fill:color-mix(in srgb,var(--blue) 16%,transparent)}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:2px}
+@keyframes bob{50%{transform:translateY(-4px) rotate(-2deg)}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}#splash{display:none}}
 @media(max-width:360px){.mn b{min-width:100px;font-size:14px}.big{font-size:52px}}
 </style>
@@ -358,12 +393,11 @@ label.gear{position:relative;overflow:hidden}label.gear input{position:absolute;
     <div class="lbl" id="hlbl">Eddig keresett</div>
     <div class="big" id="net">0<small>Ft</small></div>
     <div id="live"></div>
+    <div class="prog" id="prog" hidden><div class="pbar"><i id="pfill"></i><u id="pfut"></u></div><div class="gl"><span id="pl1"></span><span id="pl2"></span></div></div>
     <div class="sub" id="msub">–</div>
-    <div class="cmp" id="cmp" hidden></div>
     <div class="goal" id="goal" hidden><div class="gbar"><i id="gfill"></i></div><div class="gl"><span id="gl1"></span><span id="gl2"></span></div></div>
-    <button class="tg press" id="tg" aria-expanded="false">Részletek</button>
+    <div class="hrow"><div class="cmp" id="cmp" hidden></div><button class="tg press" id="tg" aria-expanded="false">Részletek</button><button class="tg press" id="ics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="icst">Naptárba</span></button></div>
     <div class="col" id="col"><div><div class="brk" id="brk"></div></div></div>
-    <button class="btn press icsb" id="ics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="icst">Naptárba</span></button>
   </div>
 
   <div class="cards rise" style="--i:2" id="cards"></div>
@@ -461,7 +495,7 @@ label.gear{position:relative;overflow:hidden}label.gear input{position:absolute;
   </div>
   <textarea id="ctext" hidden readonly aria-label="Másolandó szöveg"></textarea>
   <p class="note">Éjfél után esti bérrel számol, szünetet nem von le. Egy műszakra koppintva átírhatod az idejét. Minden adat csak ezen a telefonon van.</p>
-  <p class="made" id="made">Made by <b>Claude</b><span class="ver">Lumen v11.9</span></p>
+  <p class="made" id="made">Made by <b>Claude</b><span class="ver">Lumen v12</span></p>
 </div></div>
 
 <nav class="tabs" id="tabs"><button class="tb press on" data-v="vHome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>Főoldal</span></button><button class="tb press" data-v="vMates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.6c2.6.2 4.4 1.9 5 5.4"/></svg><span>Munkatársak</span></button><button class="tb press" data-v="vGoal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg><span>Cél</span></button><button class="tb press" data-v="vAch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><span>Jelvények</span></button><button class="tb press" data-v="vSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.3"/><circle cx="10" cy="17" r="2.3"/></svg><span>Beállítások</span></button></nav>
@@ -599,7 +633,7 @@ function openLead(d){if(eff(d).bad){toast("Előbb add meg az időt (Szerkesztés
     $("pg").onclick=()=>openGone(d);
     if($("px"))$("px").onclick=()=>{delete LEAD[d];ls.set("mm.lead",LEAD);closeSheet();render();toast("Rendben, marad a tiéd.")};
   })}
-/* ---- leadás után: e-mail a mozinak („Rácz Máténak leadom a 11.20. 18-23-as műszakomat!”) ---- */
+/* ---- leadás után: e-mail a mozinak („Minta Máténak leadom a 11.20. 18-23-as műszakomat!”) ---- */
 /* részes eset: Máté → Máténak, Bence → Bencének, Dániel → Dánielnek, Noémi → Noéminek (hangrend a keresztnév alapján):
    utolsó magánhangzó „e” vagy van ö/ő/ü/ű → -nek; az utolsó kettő semleges (e/é/i/í) → -nek; különben mély magánhangzóval -nak */
 function dativ(n){const p=n.trim().split(/\s+/),w=p.pop()||"";if(!w)return n;const v=(w.toLowerCase().match(/[aáeéiíoóöőuúüű]/g)||[]),l=v[v.length-1]||"",nt=x=>/[eéií]/.test(x||"");
@@ -675,7 +709,10 @@ function render(){
   HERO={cur:!isPast&&!isFut,base:earned};countTo($("net"),isPast||isFut?(isPast?net:0):earned+liveNow().part);
   const left=days.filter(d=>d>=today&&!CANC[d]).length;
   const nl=days.filter(d=>CANC[d]==="leadva").length,nc=days.filter(d=>CANC[d]&&CANC[d]!=="leadva").length,live=days.length-nc-nl;
-  $("msub").textContent=!DATA.at?"Töltsd be a beosztásodat a lenti gombbal":days.length?`${live} műszak · ${hrs(dm+em)} óra`+(left?` · ${left} még hátra`:"")+(nl?` · ${nl} leadva`:"")+(nc?` · ${nc} lemondva`:""):"Ebben a hónapban nincs műszakod";
+  const curM=!isPast&&!isFut,futPay=Math.max(0,net-earned),pg=$("prog");pg.hidden=!(DATA.at&&curM&&net>0);
+  if(!pg.hidden){const pe=Math.min(100,earned/net*100);requestAnimationFrame(()=>{$("pfill").style.width=pe+"%";$("pfut").style.width=(100-pe)+"%";$("pfill").style.borderRadius=pe>=99.5?"4px":"4px 0 0 4px"});
+    $("pl1").innerHTML=`Beosztva: <b>${ft(net)}</b>`;$("pl2").innerHTML=futPay>0?`még <b>${ft(futPay)}</b>${left?` · ${left} műszak`:""}`:"<b>Megvan minden ✓</b>"}
+  $("msub").textContent=!DATA.at?"Töltsd be a beosztásodat a jobb felső gombbal":days.length?`${live} műszak · ${hrs(dm+em)} óra`+(left&&pg.hidden?` · ${left} még hátra`:"")+(nl?` · ${nl} leadva`:"")+(nc?` · ${nc} lemondva`:""):"Ebben a hónapban nincs műszakod";
   const g=$("goal");g.hidden=!(S.goal>0&&DATA.at);
   if(!g.hidden){const gv=isPast?net:earned;const p=Math.min(100,gv/S.goal*100);requestAnimationFrame(()=>$("gfill").style.width=p+"%");$("gl1").textContent=`Cél: ${ft(S.goal)}`;$("gl2").textContent=gv>=S.goal?"Megvan ✓":`még ${ft(S.goal-gv)}`}
   const br=[[`${hrs(dm)} óra × ${fmt(S.r1)} Ft`,dm/60*S.r1],[`${hrs(em)} óra × ${fmt(S.r2)} Ft`,em/60*S.r2],["Ünnepnapi pótlék",hx],["Rendszerhasználat",-fee]].filter(r=>Math.round(r[1]));
@@ -689,14 +726,21 @@ function render(){
       return `<li class="sh cnc${past?" past":""}"><button class="row" data-ed="${d}" aria-expanded="${openEdit===d}"><span class="dt"><b>${dt.getDate()}</b><i>${HU_D[dt.getDay()]}</i></span><span><span class="tm"><s>${tt||"Műszak"}</s></span><span class="tags"><span class="x">${CNL[e.canc]||"lemondtad"}</span></span></span><span class="pay">0 Ft</span></button>${ed2}</li>`}
     const tg=[isHol(d)?'<span class="h">ünnepnap · dupla bér</span>':"",e.bad?'<span class="x">koppints, és add meg az időt</span>':"",e.est?kind(DATA.shifts[d]):"",svTag(d,e,c),mates(d,e,c),e.own?"átírtad":"",ADD[d]?'<span class="h">felvetted</span>':"",LEAD[d]?'<span class="wr">leadásra kiírva</span>':"",d===today?'<span class="h">ma</span>':""].filter(Boolean).join(" · ");
     const ed=openEdit===d?`<div class="ed"><div class="edp"><div class="gt" style="margin:0 2px 8px">Veled ${d<today?"dolgozott":"dolgozik"}${(()=>{const L=svFor(d,e,c);return L.length?` · <span class="svt">SV: ${L.map(esc).join(", ")}</span>`:""})()}</div>${pplHtml(d)}</div><label class="l">Kezdés<input type="time" id="ea" value="${e.bad?"18:00":hm(e.a)}"></label><label class="l">Vége<input type="time" id="eb" value="${e.bad?"23:00":hm(c.end%1440)}"></label><label class="l" style="grid-column:1/-1">Jegyzet<textarea id="en" rows="2" placeholder="pl. sok néző volt">${esc(NOTES[d]||"")}</textarea></label><div class="bt"><button class="btn press" data-save="${d}">Mentés</button>${OV[d]?`<button class="btn g press" data-clr="${d}">Eredeti</button>`:""}</div>${d>=today?(e.bad?`<p class="note" style="grid-column:1/-1;margin:0">Leadáshoz előbb add meg fent az időt, és mentsd.</p>`:`<button class="btn g press lbtn" data-lead="${d}">${LEAD[d]?"Leadás: poszt újra / elvitték":"Leadom (Facebook-poszt)"}</button>`):""}${ADD[d]?`<button class="btn g press cbtn" data-unadd="${d}">Mégsem vettem fel</button>`:`<button class="btn g press cbtn" data-cnc="${d}">Lemondtam / leadtam</button>`}</div>`:"";
-    return `<li class="sh${past?" past":""}${d===today?" today":""}"><button class="row" data-ed="${d}" aria-expanded="${openEdit===d}"><span class="dt"><b>${dt.getDate()}${favOn(d)?'<sup class="fv">✦</sup>':""}${avOn(d)?'<sup class="avs">⚡</sup>':""}</b><i>${HU_D[dt.getDay()]}</i></span><span>${tmHtml(c)}${tg?`<span class="tags">${tg}</span>`:""}${NOTES[d]?`<span class="tags nte">📝 ${esc(NOTES[d])}</span>`:""}</span><span class="pay">${e.bad?"–":ft(c.pay)}</span></button>${ed}</li>`}).join(""):`<li class="empty">${DATA.at?"Ebben a hónapban nincs zöld műszakod.":"Nyomd meg a jobb felső gombot, és válaszd ki az Excelt a Letöltések mappából."}</li>`;
+    return `<li class="sh${past?" past":""}${d===today?" today":""}"><button class="row" data-ed="${d}" aria-expanded="${openEdit===d}"><span class="dt"><b>${dt.getDate()}${favOn(d)?'<sup class="fv">✦</sup>':""}${avOn(d)?'<sup class="avs">⚡</sup>':""}</b><i>${HU_D[dt.getDay()]}</i></span><span>${tmHtml(c)}${tg?`<span class="tags">${tg}</span>`:""}${NOTES[d]?`<span class="tags nte">📝 ${esc(NOTES[d])}</span>`:""}</span><span class="pay">${e.bad?"–":ft(c.pay)}</span></button>${ed}</li>`}).join(""):`<li class="empty">${DATA.at?emptyArt("ticket","Ebben a hónapban nincs műszakod","Ha felveszel egyet, lent hozzáadhatod."):emptyArt("popcorn","Még nincs beosztás betöltve","Nyomd meg a jobb felső gombot, és válaszd ki az Excelt a Letöltések mappából.")}</li>`;
   {const[py,pm]=[mo===1?y-1:y,mo===1?12:mo-1],pk=`${py}-${pad(pm)}`,ps=mSum(pk),pv=ps.past+ps.fut,cel=$("cmp");
-   if(DATA.at&&days.length&&pv>0){const df=Math.round((net-pv)/pv*100);cel.hidden=false;cel.className="cmp "+(df>=0?"up":"dn");cel.textContent=`${df>=0?"▲":"▼"} ${Math.abs(df)}% ${HU_HOZ[pm-1]} képest${isPast?"":" (beosztva)"}`}else cel.hidden=true}
+   if(DATA.at&&days.length&&pv>0){const df=Math.round((net-pv)/pv*100);cel.hidden=false;cel.className="cmp "+(df>=0?"up":"dn");cel.innerHTML=`<i>${df>=0?"▲":"▼"}</i> ${Math.abs(df)}% ${HU_HOZ[pm-1]} képest`}else cel.hidden=true}
   const n=pending().length+dlPend().length;$("icst").textContent=n?`Naptárba (${n})`:"Naptárba";
   $("whoname").textContent=S.name||"nincs megadva";
   renderCards();renderStats();renderHist();renderHols();liveCard();if(typeof checkAch==="function")checkAch(!BOOTED);if(typeof renderWl==="function")renderWl();
 }
-function card(ic,t,v,blue){return `<div class="nc${blue?" b":""}"><div class="ico">${I[ic]}</div><div><div class="nt">${t}</div><div class="nv">${v}</div></div></div>`}
+/* üres állapotok: saját vonalrajzok, a kiemelő színnel */
+const ART={
+  ticket:'<g transform="rotate(-10 36 36)"><path class="f2" d="M12 22h48a4 4 0 0 1 4 4v6a5 5 0 0 0 0 10v6a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4v-6a5 5 0 0 0 0-10v-6a4 4 0 0 1 4-4z"/><path d="M48 25v24" stroke-dasharray="3 4"/><path d="M18 32h18M18 40h11"/></g>',
+  popcorn:'<path class="f2" d="M18 30h36l-5 32H23z"/><path d="M30 30l1.5 32M42 30l-1.5 32"/><path d="M20 30a7 7 0 0 1 3-12 8 8 0 0 1 13-6 8 8 0 0 1 13 6 7 7 0 0 1 3 12"/>',
+  people:'<circle class="f2" cx="27" cy="26" r="9"/><path d="M11 56c0-9 7-16 16-16s16 7 16 16"/><circle cx="49" cy="28" r="7"/><path d="M46 41c8 0 15 6 15 15"/>',
+  target:'<circle class="f2" cx="34" cy="38" r="22"/><circle cx="34" cy="38" r="13"/><circle cx="34" cy="38" r="4"/><path d="M34 38 58 14M50 14h8v8"/>'};
+const emptyArt=(k,t,s)=>`<svg class="art" viewBox="0 0 72 72" aria-hidden="true">${ART[k]}</svg><b>${t}</b>${s||""}`;
+function card(ic,t,v,blue,sm){return `<div class="nc${blue?" b":""}${sm?" sm":""}"><div class="ico">${I[ic]}</div><div><div class="nt">${t}</div><div class="nv">${v}</div></div></div>`}
 let HERO={cur:false,base:0};
 function payPart(d,uptoAbs){const e=eff(d);if(e.bad)return 0;const c=calc(d);let a=e.a,b=c.end;const lim=Math.min(b,uptoAbs);let pay=0;for(let m=a;m<lim;m++){const off=Math.floor(m/1440),mm=m%1440,day=off?addD(d,off):d;const evn=mm>=1080||mm<360;pay+=((evn?S.r2:S.r1)/60)*(isHol(day)?S.hol:1)}
   if(lim>a&&lim<b){const m=Math.floor(lim),fr=lim-m,off=Math.floor(m/1440),mm=m%1440,day=off?addD(d,off):d,evn=mm>=1080||mm<360;pay+=((evn?S.r2:S.r1)/60)*(isHol(day)?S.hol:1)*fr}return pay}
@@ -711,22 +755,23 @@ function liveCard(){const n=new Date(),t=iso(n),L=liveNow(),el=$("live");
   if(DATA.at&&(t in DATA.shifts)){const e=eff(t);if(!e.bad){const c=calc(t),now=(n-pd(t))/6e4;if(now<e.a){const w=e.a-now;el.innerHTML=`<div class="lv pre"><div class="lvh">Ma ${hm(e.a)}-tól</div><div class="lvs" style="margin:0"><b>${ft(c.pay)}</b> vár rád · ${Math.floor(w/60)} ó ${Math.floor(w%60)} p múlva kezdesz</div></div>`;return}}}
   el.innerHTML=""}
 setInterval(liveCard,1000);
+{const hh=document.querySelector("#vHome header");addEventListener("scroll",()=>hh.classList.toggle("sc",scrollY>6),{passive:true})}
 function weekCard(){const t=new Date(),wd=(t.getDay()+6)%7,mon=addD(today,-wd),sun=addD(mon,6);const ds=Object.keys(DATA.shifts).filter(d=>d>=mon&&d<=sun&&!eff(d).bad);if(!ds.length)return"";
-  let p=0,m=0,done=0;ds.forEach(d=>{const c=calc(d);p+=c.pay;m+=c.mins;if(d<today)done+=c.pay});return card("cal","Ezen a héten",`${ds.length} műszak · ${hrs(m)} óra · <em>${ft(p)}</em>${done&&done<p?` <span style="color:var(--mute);font-weight:500">(${ft(done)} már megvan)</span>`:""}`)}
+  let p=0,m=0,done=0;ds.forEach(d=>{const c=calc(d);p+=c.pay;m+=c.mins;if(d<today)done+=c.pay});return card("cal","Ezen a héten",`${ds.length} műszak · ${hrs(m)} óra · <em>${ft(p)}</em>${done&&done<p?` <span style="color:var(--mute);font-weight:500">(${ft(done)} már megvan)</span>`:""}`,0,1)}
 function renderCards(){
   const out=[];
   if(DATA.at){
     const fut=Object.keys(DATA.shifts).filter(d=>d>=today&&!eff(d).bad).sort();
-    if(fut.length){const d=fut[0],c=calc(d),dt=pd(d),nm=matesOf(d,eff(d),c).length;out.push(`<button class="nc b go press" data-shift="${d}"><div class="ico">${I.clk}</div><div><div class="nt">Következő műszak · ${liveNow().d===d?"most zajlik":rel(d)}</div><div class="nv">${HU_DL[dt.getDay()]}, ${hday(d)}</div><div class="tmb">${tmHtml(c)}</div>${(()=>{const L=svFor(d,eff(d),c);return L.length?`<div class="nsub"><span class="svt">SV: ${L.map(esc).join(", ")}</span></div>`:""})()}<div class="nsub">${ft(c.pay)}${nm?` · ${nm} munkatárs veled`:""} · részletek</div></div><span class="chev">›</span></button>`);if(avOn(d)){const nm=matesOf(d,eff(d),c).find(isAv);out.push(`<div class="nc avc"><div class="ico">⚡</div><div><div class="nt">${esc(first(nm))} is veled lesz ${rel(d)}</div><div class="nv">${esc(S.avm||AVD)}</div></div></div>`)}}
+    if(fut.length){const d=fut[0],c=calc(d),dt=pd(d),nm=matesOf(d,eff(d),c).length;const L=svFor(d,eff(d),c),rr=liveNow().d===d?"most zajlik":rel(d);out.push(`<button class="nc b go press nxt" data-shift="${d}"><div><div class="nt">Következő műszak · ${rr}</div><div class="nv">${HU_DL[dt.getDay()]}, ${hday(d)}</div><div class="tmb big2">${tmHtml(c)}</div><div class="chp"><span>${ft(c.pay)}</span>${L.length?`<span class="svt">SV: ${L.map(esc).join(", ")}</span>`:""}${nm?`<span>${nm} munkatárs</span>`:""}${isHol(d)?'<span class="svt">ünnepnap</span>':""}</div></div><span class="chev">›</span></button>`);if(avOn(d)){const nm=matesOf(d,eff(d),c).find(isAv);out.push(`<div class="nc avc"><div class="ico">⚡</div><div><div class="nt">${esc(first(nm))} is veled lesz ${rel(d)}</div><div class="nv">${esc(S.avm||AVD)}</div></div></div>`)}}
     {const wc=weekCard();if(wc)out.push(wc)}
     const w=(DATA.weeks||[])[0];
     if(w&&w.dl){const dl=new Date(w.dl),ms=dl-NOW;if(ms>0){const days=Math.floor(ms/864e5),h=Math.floor(ms/36e5);const left=days>=1?`még ${days} nap`:`még ${h} óra`;const end=addD(w.start,6);
       const wd=(w.d||[]).map((x,k)=>x&&x[0]?HU_D[pd(addD(w.start,k)).getDay()]:"").filter(Boolean);
-      out.push(card("pen",`Beírás a ${hday(w.start)}–${hday(end)} hétre`,`Határidő: ${hday(iso(dl))} ${pad(dl.getHours())}:${pad(dl.getMinutes())} · <em>${left}</em><div class="nsub">${w.req?`A betöltött táblázat szerint ${w.req} napra írtál be: ${wd.join(", ")}`:`<span class="wr">Írj beót!</span> A betöltött táblázatban még nincs beírt napod.`}</div>`,!w.req))}}
+      out.push(card("pen",`Beírás a ${hday(w.start)}–${hday(end)} hétre`,`Határidő: ${hday(iso(dl))} ${pad(dl.getHours())}:${pad(dl.getMinutes())} · <em>${left}</em><div class="nsub">${w.req?`A betöltött táblázat szerint ${w.req} napra írtál be: ${wd.join(", ")}`:`<span class="${ms<2*864e5?"wr":"bl"}">Írj beót!</span> A betöltött táblázatban még nincs beírt napod.`}</div>`,!w.req,!!w.req))}}
     if(S.payday>0){const pdOf=(y,m)=>new Date(y,m,Math.min(S.payday,new Date(y,m+1,0).getDate()));let p=pdOf(NOW.getFullYear(),NOW.getMonth());if(iso(p)<today)p=pdOf(NOW.getFullYear(),NOW.getMonth()+1);const pm=new Date(p.getFullYear(),p.getMonth()-1,1),pk=iso(pm).slice(0,7),s=mSum(pk),run=pk===today.slice(0,7);
-      out.push(card("card","Következő fizetés",`${hday(iso(p))} · ${rel(iso(p))}<div class="nsub">${HU_M[pm.getMonth()]}i munka: ${run?`<em>${ft(s.past)} eddig megvan</em>${s.fut?` · még ${ft(s.fut)} beosztva`:""}`:`<em>kb. ${ft(s.past+s.fut)}</em>`}</div>`))}
+      out.push(card("card","Következő fizetés",`${hday(iso(p))} · ${rel(iso(p))}<div class="nsub">${HU_M[pm.getMonth()]}i munka: ${run?`<em>${ft(s.past)} eddig megvan</em>${s.fut?` · még ${ft(s.fut)} beosztva`:""}`:`<em>kb. ${ft(s.past+s.fut)}</em>`}</div>`,0,1))}
     if(DATA.eu){const n=dd(today,DATA.eu);if(n<45)out.push(card("med","Egészségügyi kiskönyv",n<0?`<span class="wr">Lejárt: ${DATA.eu.replace(/-/g,". ")}.</span>`:`Lejár: ${DATA.eu.replace(/-/g,". ")}. · <span class="wr">${rel(DATA.eu)}</span>`))}
-    const age=dd(DATA.at,today);if(!fut.length||age>=7)out.push(card("dl","Beosztás",!fut.length?"Nincs több műszakod a betöltöttben. Ha kijött az új, töltsd be.":`${age} napja töltötted be, valószínűleg van újabb.`));
+    const age=dd(DATA.at,today);if(!fut.length||age>=7)out.push(card("dl","Beosztás",!fut.length?"Nincs több műszakod a betöltöttben. Ha kijött az új, töltsd be.":`${age} napja töltötted be, valószínűleg van újabb.`,0,1));
   }
   if(DATA.at&&wrapYear()&&wrapData(wrapYear()))out.unshift(`<button class="nc wcard press" id="wcard"><div class="ico">${I.cal}</div><div><div class="nt">Megérkezett</div><div class="nv">${wrapYear()} Wrapped · nézd meg ›</div></div></button>`);
   $("cards").innerHTML=out.join("");$("cards").hidden=!out.length;
@@ -975,7 +1020,7 @@ $("file").addEventListener("change",async ev=>{
 });
 
 const ACC=["#1f5eff","#7c4dff","#ff2d55","#ff9500","#34c759","#00c7be","#af52de","#8e8e93"];
-function applyAcc(){if(S.accent)document.documentElement.style.setProperty("--blue",S.accent);else document.documentElement.style.removeProperty("--blue")}
+function applyAcc(){accSet(S.accent)}
 function drawSw(){$("sw").innerHTML=ACC.map(c=>`<button class="press${(S.accent||ACC[0])===c?" on":""}" data-c="${c}" style="background:${c}" aria-label="${c}"></button>`).join("")+`<label aria-label="Egyéni szín"><input type="color" id="cc" value="${S.accent||ACC[0]}"></label>`;
   $("cc").oninput=e=>{S.accent=e.target.value;applyAcc()};$("cc").onchange=e=>{S.accent=e.target.value;ls.set("mm.set",S);drawSw()}}
 $("sw").addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;S.accent=b.dataset.c===ACC[0]?"":b.dataset.c;applyAcc();ls.set("mm.set",S);drawSw()});
@@ -1266,10 +1311,10 @@ function mateStats(){const M={};const ds=Object.keys(DATA.shifts).sort();
   return Object.values(M)}
 function renderMates(){
   const fut=Object.keys(DATA.shifts).filter(d=>d>=today&&!eff(d).bad).sort();
-  if(!DATA.at){$("mnext").innerHTML='<div class="empty">Töltsd be a beosztást a főoldalon.</div>';$("mtop").innerHTML="";$("mnote").textContent="";return}
+  if(!DATA.at){$("mnext").innerHTML=`<div class="empty">${emptyArt("people","Még nincsenek munkatársak","Töltsd be a beosztást a főoldalon.")}</div>`;$("mtop").innerHTML="";$("mnote").textContent="";return}
   if(fut.length){const d=fut[0],e=eff(d),c=calc(d);
     $("mnext").innerHTML=`<div class="nx"><div class="h">${(()=>{const L=svFor(d,e,c);return L.length?`<span class="svt">SV: ${L.map(esc).join(", ")}</span> · `:""})()}${HU_DL[pd(d).getDay()]}, ${hday(d)} · ${hm(e.a)}–${hm(c.end%1440)} · ${rel(d)}</div>${pplHtml(d)}</div>`}
-  else $("mnext").innerHTML='<div class="empty">Nincs következő műszakod a betöltött beosztásban.</div>';
+  else $("mnext").innerHTML=`<div class="empty">${emptyArt("ticket","Nincs következő műszakod","A betöltött beosztásban már nincs több.")}</div>`;
   const q=norm($("mq").value||"");let L=mateStats().filter(o=>!q||norm(o.n).includes(q)).sort((a,b)=>b.past-a.past||b.fut-a.fut);
   const max=Math.max(1,...L.map(o=>o.past));
   $("mtop").innerHTML=L.slice(0,q?60:25).map(o=>{const fv=S.fav&&norm(o.n)===norm(S.fav);const sub=[o.last?`utoljára ${hday(o.last)}`:"",o.next?`legközelebb ${hday(o.next)}`:""].filter(Boolean).join(" · ");
@@ -1282,7 +1327,7 @@ $("mq").oninput=renderMates;
 const GCH=[20000,50000,100000,250000,500000];
 $("gamt").value=ls.get("mm.gamt","")||"";$("gamt").oninput=renderGoal;
 function renderGoal(){const amt=+$("gamt").value||0;ls.set("mm.gamt",amt||"");const r=S.r1||2080,per=8*r;
-  if(!(amt>0)){$("gres").innerHTML=`<div class="empty">Írj be fent egy összeget.<br>Egy 8 órás műszak most ${ft(per)}.</div>`;return}
+  if(!(amt>0)){$("gres").innerHTML=`<div class="empty">${emptyArt("target","Mennyit szeretnél összegyűjteni?",`Írj be fent egy összeget. Egy 8 órás műszak most ${ft(per)}.`)}</div>`;return}
   const n=Math.ceil(amt/per*10)/10,nf=n.toLocaleString("hu-HU",{maximumFractionDigits:1}),hh=Math.ceil(amt/r*10)/10;
   const wk=(DATA.weeks||[]).filter(w=>w.start<today&&w.req>0).slice(0,8);const avg=wk.length?wk.reduce((a,w)=>a+w.got,0)/wk.length:0;
   const futPay=Object.keys(DATA.shifts).filter(d=>d>=today&&!eff(d).bad).reduce((a,d)=>a+calc(d).pay,0);
