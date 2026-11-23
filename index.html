@@ -12,8 +12,17 @@
 <link rel="icon" href="icon-180.png">
 <title>Lumen</title>
 <script>/* a kiemelő szín már az indító animáció előtt érvényes; sötét módban kicsit világosabb árnyalat */
-function accSet(a){const r=document.documentElement.style;if(a)r.setProperty("--blue",`light-dark(${a},color-mix(in srgb,${a} 82%,#fff))`);else r.removeProperty("--blue")}
-try{accSet(JSON.parse(localStorage.getItem("mm.set")||"{}").accent)}catch(e){}</script>
+function accSet(a){const r=document.documentElement.style;if(document.documentElement.classList.contains("dot"))a=null;/* Dot témában a saját piros a kiemelő */if(a)r.setProperty("--blue",`light-dark(${a},color-mix(in srgb,${a} 82%,#fff))`);else r.removeProperty("--blue")}
+/* „Dot” téma (S.theme="dot"): a <html> kap egy dot osztályt, minden Dot-stílus html.dot alatt van; már itt, hogy ne villanjon */
+try{const s0=JSON.parse(localStorage.getItem("mm.set")||"{}");if(s0.theme==="dot")document.documentElement.classList.add("dot");accSet(s0.accent)}catch(e){}
+/* dotNum(szöveg, osztály): számok/rövid szöveg pontmátrixként (saját 5×7-es rács, SVG, currentColor, 1em magas).
+   Ismert jelek: 0–9 szóköz . , : - + − F t ; ismeretlen jel = kis köz. Visszaad: HTML-string, aria-label = a szöveg. */
+const DOTG={"0":"01110 10001 10011 10101 11001 10001 01110","1":"00100 01100 00100 00100 00100 00100 01110","2":"01110 10001 00001 00010 00100 01000 11111","3":"11111 00010 00100 00010 00001 10001 01110","4":"00010 00110 01010 10010 11111 00010 00010","5":"11111 10000 11110 00001 00001 10001 01110","6":"00110 01000 10000 11110 10001 10001 01110","7":"11111 00001 00010 00100 01000 01000 01000","8":"01110 10001 10001 01110 10001 10001 01110","9":"01110 10001 10001 01111 00001 00010 01100","F":"11111 10000 10000 11110 10000 10000 10000","t":"0100 0100 1110 0100 0100 0101 0010","-":"000 000 000 111 000 000 000","−":"00000 00000 00000 11111 00000 00000 00000","+":"00000 00100 00100 11111 00100 00100 00000",".":"0 0 0 0 0 0 1",",":"0 0 0 0 0 1 1",":":"0 0 1 0 0 1 0"," ":"00 00 00 00 00 00 00","L":"10000 10000 10000 10000 10000 10000 11111","U":"10001 10001 10001 10001 10001 10001 01110","M":"10001 11011 10101 10101 10001 10001 10001","E":"11111 10000 10000 11110 10000 10000 11111","N":"10001 11001 10101 10011 10001 10001 10001"},DOTC=new Map();
+function dotNum(str,cls){str=String(str==null?"":str);const key=str+"\u0001"+(cls||"");if(DOTC.has(key))return DOTC.get(key);let x=0,n=0,c="";
+  for(const ch0 of str){const ch=/[\s  ]/.test(ch0)?" ":ch0;const g=DOTG[ch];if(!g){x+=2;continue}const R=g.split(" "),w=R[0].length;
+    R.forEach((r,y)=>{for(let i=0;i<w;i++)if(r[i]==="1")c+=`<circle cx="${x+i+.5}" cy="${y+.5}" r=".42" style="--n:${n++}"/>`});x+=w+1}
+  const W=Math.max(1,x-1),lab=str.replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[m]);
+  const h=`<svg class="dn${cls?" "+cls:""}" viewBox="0 0 ${W} 7" width="${(W/7).toFixed(3)}em" height="1em" fill="currentColor" role="img" aria-label="${lab}">${c}</svg>`;if(DOTC.size>400)DOTC.clear();DOTC.set(key,h);return h}</script>
 <style>
 /* VOICE: calm, exact, Apple-like utility; one thumb, one glance
    IDEA: a wallet pass for shift work — the month's pay up top, everything else as quiet cards
@@ -148,6 +157,55 @@ button.nc{width:100%;border:0;text-align:left;font:inherit;color:inherit;cursor:
 .psr{margin:0 2px 16px}
 .pshb{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}
 #pShift .pp:not(.fav):not(.avp){background:var(--card);box-shadow:0 0 0 1px var(--line)}
+/* ===== Dot téma – Főoldal + műszak oldal (minden html.dot alatt; a Lumen téma érintetlen) =====
+   lapos, árnyék és üveg nélkül, vékony keret, pontozott elválasztó, kis NAGYBETŰS ritkított monospace címkék,
+   egyetlen kiemelő a --blue (Dotban piros); a pontmátrix számok a ui-stilus dotNum() segédjéből jönnek */
+html.dot{--dfr:color-mix(in srgb,var(--ink) 22%,transparent);--dmo:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+html.dot .lbl,html.dot #msub,html.dot .nxt .nt,html.dot .dwd,html.dot .nxt .chp span,html.dot .dt i,html.dot .lrt small,html.dot .lra span,html.dot .dlb .dl1,html.dot #pShift .gt,html.dot #pShift .psr,html.dot #pShift .shg span,html.dot .ed .gt,html.dot .ed label.l{font-family:var(--dmo);text-transform:uppercase;letter-spacing:.12em;font-weight:500}
+/* fejléc: a 3 pirula alapját (szín, keret, betű) a ui-stilus közös Dot-szabálya adja; itt csak az üveg kikapcsolása */
+html.dot header.w .gear,html.dot header.w .mn{-webkit-backdrop-filter:none;backdrop-filter:none}
+/* fizetés: pontmátrix szám, pöttysor-haladáscsík (maszk: a pöttyök mindhárom részen egy rácsban vannak, a szélesség-animáció marad) */
+html.dot .lbl{font-size:11px}
+html.dot .big{font-family:var(--dmo);font-weight:500;letter-spacing:-.02em;font-size:clamp(50px,15vw,74px)}
+html.dot .big svg{display:inline-block;vertical-align:-.02em}
+html.dot .big small{font:500 .3em var(--dmo);letter-spacing:.1em;margin-left:8px}
+html.dot .pbar{height:8px;border-radius:0;background:var(--dfr);-webkit-mask:radial-gradient(circle,#000 2.3px,transparent 2.8px) 0 50%/9px 8px repeat-x;mask:radial-gradient(circle,#000 2.3px,transparent 2.8px) 0 50%/9px 8px repeat-x}
+html.dot .pbar i{border-radius:0;background:var(--blue)}html.dot .pbar u{background:color-mix(in srgb,var(--blue) 40%,transparent)}
+html.dot .prog .gl,html.dot #msub{font-family:var(--dmo);font-size:11px;letter-spacing:.08em}
+/* következő műszak */
+html.dot .nc.nxt{background:var(--bg);box-shadow:none;border:1px solid var(--ink);border-radius:20px}
+html.dot .nxt .nt{font-size:11px;color:var(--blue)}
+html.dot .nxt .nv{display:flex;align-items:baseline;gap:10px;margin-top:8px}
+html.dot .dwd{font-size:11px;color:var(--mute)}
+html.dot .nxt .nv svg{height:30px;width:auto}
+html.dot .dtm{align-items:center;column-gap:8px}html.dot .dtm svg{height:34px;width:auto}html.dot .big2 .dtm .ar{font-size:18px}
+html.dot .nxt .chp span{background:transparent;border:1px solid var(--dfr);font-size:10.5px;padding:4px 9px}
+html.dot .nxt .chp .svt,html.dot .nxt .chp .hg{border-color:currentColor;background:transparent}
+/* műszaklista: pontmátrix nap, monospace idők (a pontozott elválasztó a ui-stilus közös --dotsep szabálya) */
+html.dot .dt b svg{height:22px;width:auto;display:block;margin:0 auto}html.dot .dt b{display:flex;justify-content:center;align-items:flex-start;gap:1px}
+html.dot .dt i{font-size:9.5px;margin-top:4px}
+html.dot .row .tm b,html.dot .pay{font-family:var(--dmo);font-weight:500;letter-spacing:0}
+/* lenyitott sor */
+html.dot .lrp{background:transparent;border:1px solid var(--dfr)}
+html.dot .lrs i{background:var(--bg);color:var(--ink);border:1px solid var(--ink);box-shadow:0 0 0 2px var(--bg);font-family:var(--dmo);font-weight:500}
+html.dot .lrs i.fav{background:var(--blue);border-color:var(--blue);color:#fff}html.dot .lrs i.more{border-style:dashed;color:var(--mute)}
+html.dot .lrt small{font-size:10px}
+html.dot .lra{background:transparent;border:1px solid var(--dfr)}html.dot .lra span{font-size:9.5px;letter-spacing:.08em}
+html.dot .lra.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* „Írj beót!” szalag */
+html.dot .nc.dlb{background:transparent;box-shadow:none;border:1px solid var(--dfr)}
+html.dot .nc.dlb.b{border-color:var(--blue)}
+html.dot .dlb .dl1{font-size:12px}html.dot .dlb.sm .dl1{font-size:11.5px}
+html.dot .dlr b svg{height:26px;width:auto;display:block;margin:0 auto}html.dot .dlr small{font-family:var(--dmo);text-transform:uppercase;letter-spacing:.1em;font-size:9.5px}
+/* műszak teljes oldal */
+html.dot #pShift .ph{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;background-image:radial-gradient(circle,var(--dfr) 1.1px,transparent 1.5px);background-size:6px 3px;background-repeat:repeat-x;background-position:0 100%}
+html.dot #pShift .ph b{font:500 13px var(--dmo);text-transform:uppercase;letter-spacing:.14em}
+html.dot .psh{font:500 22px/1.15 var(--dmo);text-transform:uppercase;letter-spacing:.04em}
+html.dot #pShift .psr{font-size:11px}
+html.dot #pShift .shd{background:transparent;box-shadow:none;border:1px solid var(--ink);border-radius:18px}
+html.dot #pShift .shg span{font-size:10px}html.dot #pShift .shg b{font-family:var(--dmo);font-weight:500}
+html.dot #pShift .pp:not(.fav):not(.avp){background:transparent;box-shadow:none;border:1px solid var(--dfr)}
+html.dot #pShift .pp small,html.dot .ed .pp small{font-family:var(--dmo)}
 /* „Írj beót!” határidő-szalag (két sor + jobb oldalt a hátralévő idő) */
 .nc.dlb,.nc.dlb.sm{grid-template-columns:auto minmax(0,1fr) auto}
 .dlb .dl1{font-weight:650;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dlb.sm .dl1{font-size:15px;font-weight:600}
@@ -294,9 +352,10 @@ html.land .rot{display:grid}
 html.land body{overflow:hidden}
 .lv{margin-top:14px;background:var(--tint);border-radius:18px;padding:14px 16px;text-align:left}
 .lvh{font-size:13px;font-weight:600;color:var(--blue);display:flex;align-items:center;gap:8px}
-.dot{position:relative;width:8px;height:8px;border-radius:50%;background:#34c759}
+/* .ldot = élő műszak jelző (régen .dot – átnevezve, mert a html.dot téma-osztállyal ütközött) */
+.ldot{position:relative;width:8px;height:8px;border-radius:50%;background:#34c759}
 /* a lüktető gyűrű transform + opacity (a GPU csinálja), nem box-shadow – így műszak közben nem rajzol újra minden képkockát */
-.dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:#34c75988;animation:pulse 1.6s infinite}
+.ldot::after{content:"";position:absolute;inset:0;border-radius:50%;background:#34c75988;animation:pulse 1.6s infinite}
 @keyframes pulse{0%{transform:scale(1);opacity:1}70%{transform:scale(3.25);opacity:0}100%{transform:scale(1);opacity:0}}
 .lvn{font:700 34px/1.1 var(--num);letter-spacing:-.02em;margin:6px 0 10px;font-variant-numeric:tabular-nums}.lvn small{font-size:.5em;color:var(--blue)}
 .lvs{font-size:13px;color:var(--mute);margin-top:8px}.lvs b{color:var(--ink)}
@@ -568,13 +627,162 @@ header.w .mn{height:50px;padding:5px}
 .view{transform-origin:50% var(--oy,50vh);transition:transform .34s cubic-bezier(.2,.8,.2,1)}
 body.sho .view.on,body.sho .page.on{transform:scale(calc(1 - .045*var(--sp,1)))}
 body.drg .view,body.drg .page,body.drg .scrim{transition:none}
+/* ===== „Dot” téma (S.theme="dot" → html.dot). Minden Dot-stílus html.dot alatt; Lumen témában ez a blokk semmit nem csinál.
+   Lapos: nincs árnyék, nincs üveg; a kártyákat 1px-es vonal rajzolja (a --sh/--sh2 itt belső keret), egy piros kiemelő.
+   --mono = címkék betűje; .dn = dotNum() pontmátrix SVG */
+html.dot:root{--bg:light-dark(#f2f2f0,#000000);--ink:light-dark(#0b0b0b,#f2f2f2);--mute:light-dark(#6a6a6a,#8c8c8c);--line:light-dark(#d4d4d0,#2a2a2a);--card:light-dark(#f2f2f0,#000000);--trk:light-dark(#dededa,#1d1d1d);
+  --blue:light-dark(#d71921,#ff2a2a);--tint:transparent;--gold:var(--blue);--goldbg:transparent;--ok:var(--ink);--warn:var(--blue);
+  --sh:inset 0 0 0 1px var(--line);--sh2:inset 0 0 0 1px var(--line);--glass:var(--bg);--glassfx:none;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;--num:var(--mono);--dotsep:1px dotted color-mix(in srgb,var(--mute) 70%,transparent)}
+.dn{display:inline-block;vertical-align:baseline;overflow:visible}
+html.dot .sb{display:none}
+/* címkék: kicsi, nagybetűs, ritkított, monospace */
+html.dot .gt,html.dot .lbl,html.dot .nt,html.dot .nx .h,html.dot .st span,html.dot .shg span,html.dot label.l,html.dot .grs>span,html.dot .gl,html.dot .tb,html.dot .anw,html.dot .its{font-family:var(--mono);text-transform:uppercase;letter-spacing:.09em;font-size:11px;font-weight:500}
+html.dot .vh h1{font:600 28px/1.1 var(--mono);text-transform:uppercase;letter-spacing:.06em}
+html.dot h2{font:500 12px var(--mono);text-transform:uppercase;letter-spacing:.14em;color:var(--mute)}
+html.dot .big,html.dot .gbig b,html.dot .lvn,html.dot .st b,html.dot .gin input{font-family:var(--mono);font-weight:500;letter-spacing:0}
+/* elválasztók: pontozott */
+html.dot .it+.it,html.dot .sh+.sh,html.dot .hl+.hl,html.dot .mr+.mr,html.dot .bd+.bd,html.dot .hol div,html.dot .nl button{border-top:var(--dotsep)}
+html.dot .nl button{border-bottom:0}
+/* kártyák, pirulák, gombok: lapos, vonalas */
+html.dot .pp:not(.fav):not(.avp),html.dot .nxt .chp span,html.dot .ico,html.dot .chips button,html.dot .tg{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+html.dot .nc.b .ico{background:var(--blue);box-shadow:none}
+html.dot .btn{border-radius:999px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;font-size:14px}
+html.dot .btn.g{background:transparent;color:var(--ink)}
+html.dot input,html.dot textarea{background:transparent;border-color:var(--line)}
+html.dot .seg{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+html.dot .seg button{font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;font-size:11px}
+html.dot .seg button.on{background:var(--ink);color:var(--bg);box-shadow:none}
+html.dot .gbar,html.dot .pbar,html.dot .trk{border-radius:0;height:6px}
+html.dot .gbar i,html.dot .pbar i,html.dot .pbar u{border-radius:0}
+html.dot .wcard{background:var(--blue)}
+html.dot .gbig{background:transparent;color:var(--ink);box-shadow:var(--sh)}html.dot .gbig span{opacity:1;color:var(--mute)}
+/* fejléc-pirulák + tab bar: üveg nélkül; az aktív fül alatti buborék itt egy piros pötty */
+html.dot .tabs,html.dot header.w .gear,html.dot header.w .mn{background:var(--bg);box-shadow:0 0 0 1px var(--line)}
+html.dot header.w{background:linear-gradient(to bottom,var(--bg) 0,var(--bg) calc(env(safe-area-inset-top) + 8px),transparent 100%)}
+html.dot .mn b{font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;font-size:13px;font-weight:500}
+html.dot .gear,html.dot .mn button{color:var(--ink)}
+html.dot .tabs::before{background:radial-gradient(circle at 50% calc(100% - 5px),var(--blue) 2.4px,transparent 3px)}
+html.dot .tb{font-size:9.5px;letter-spacing:.06em}html.dot .tb.on{color:var(--ink)}
+/* toast: fordított kapszula, monospace */
+html.dot .toast{background:var(--ink);color:var(--bg);border:0;box-shadow:none;font-family:var(--mono);font-size:13px;letter-spacing:.02em}
+html.dot .toast .ti{background:var(--blue);color:#fff}html.dot .toast.w .ti,html.dot .toast.a .ti{background:var(--blue);color:#fff}
+/* sheet */
+html.dot .sheet{background:var(--bg);box-shadow:0 -1px 0 var(--line)}
+html.dot .sheet h3{font:600 18px var(--mono);text-transform:uppercase;letter-spacing:.06em}
+html.dot .sheet .grip{height:4px;width:36px;background:radial-gradient(circle,var(--mute) 1.5px,transparent 1.8px) 0 50%/6px 4px repeat-x}
+/* Beállítások: téma választó; a saját kiemelő szín Dot-ban nem érvényes, ezért a választója rejtve */
+.thm{width:172px;grid-template-columns:1fr 1fr}
+html.dot .it:has(#sw){display:none}
+/* Dot splash: pöttyökből felgyúló jegy (ritkán popcorn) és LUMEN felirat; csak transform/opacity */
+.dsk{display:none}
+html.dot #splash .lg>svg:not(.dsk){display:none}
+html.dot #splash .lg{animation:none}
+html.dot #splash .dsk{display:block;width:100%;height:100%;fill:var(--ink);filter:none}
+html.dot .dsk circle,html.dot #splash .wm .dn circle{transform-box:fill-box;transform-origin:center;animation:dotIn .2s calc(var(--n,0)*20ms) ease-out both}
+html.dot #splash .wm .dn circle{animation-delay:calc(.12s + var(--n,0)*3ms)}
+html.dot .dsk .r{fill:var(--blue)}
+html.dot .dsk .dp,html.dot #splash.pc .dsk .dt{display:none}html.dot #splash.pc .dsk .dp{display:inline}
+html.dot #splash .wm{font-size:30px;animation:none;color:var(--ink)}
+html.dot #splash .by,html.dot #splash .thx{font-family:var(--mono);text-transform:uppercase;letter-spacing:.12em;font-size:11px}
+@keyframes dotIn{from{opacity:0;transform:scale(.15)}}
+html.dot #splash.lo .dsk{fill:#f2f2f2}
+html.dot #splash.lo .bm::before{-webkit-mask:radial-gradient(circle,#000 1.3px,transparent 1.7px) 0 0/6px 6px;mask:radial-gradient(circle,#000 1.3px,transparent 1.7px) 0 0/6px 6px;opacity:.9}
+html.dot #splash.lo .bm span{font-family:var(--mono);text-transform:uppercase;letter-spacing:.12em;font-size:16px;font-weight:500;text-shadow:none}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}#splash{display:none}}
 @media(max-width:360px){.mn b{min-width:100px;font-size:14px}.big{font-size:52px}}
+/* ===== Dot téma: Munkatársak, Cél, Jelvények, Statisztika/Havonta, Ünnepnapok – minden csak html.dot alatt, a Lumen téma érintetlen ===== */
+html.dot{--dmono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;--ddim:color-mix(in srgb,var(--ink) 16%,transparent)}
+html.dot .dnx,html.dot .dnu{display:inline;color:inherit}
+html.dot .dnx{font:500 .62em var(--dmono);margin-left:.12em;vertical-align:.08em}
+html.dot .dnu{font:600 .42em var(--dmono);letter-spacing:.08em;text-transform:uppercase;margin-left:.4em;vertical-align:.2em;opacity:.7}
+/* pöttysor csíkok */
+html.dot .mr .bar,html.dot .bd .bar,html.dot .achs .ap,html.dot .achh .gbar,html.dot #allsec .trk{height:6px;border-radius:0;box-shadow:none;background:radial-gradient(circle,var(--ddim) 0 1.5px,transparent 2px) 0 50%/6px 6px repeat-x}
+html.dot .mr .bar i,html.dot .bd .bar i,html.dot .achs .ap i,html.dot .achh .gbar i,html.dot #allsec .trk i{border-radius:0;animation:none;background:radial-gradient(circle,var(--ink) 0 1.6px,transparent 2px) 0 50%/6px 6px repeat-x}
+html.dot .mr.fav .bar i,html.dot .bd.top .bar i,html.dot #allsec .hr.on .trk i,html.dot .achs .ac.t-l .ap i{background-image:radial-gradient(circle,var(--blue) 0 1.6px,transparent 2px)}
+html.dot #allsec .trk i{opacity:1}html.dot #allsec .trk i+i{opacity:.4!important}
+/* Munkatársak */
+html.dot #vMates .nx{background:transparent;border:1px solid var(--line)}
+html.dot #vMates .nx .h{font:500 11px var(--dmono);text-transform:uppercase;letter-spacing:.07em}
+html.dot #vMates .pp{background:transparent;border:1px dotted color-mix(in srgb,var(--ink) 45%,transparent);color:var(--ink)}
+html.dot #vMates .pp.fav{border:1px solid var(--blue);color:var(--blue)}html.dot #vMates .pp.fav small{color:var(--blue)}
+html.dot .mr.dm{grid-template-columns:34px minmax(0,1fr) 60px 50px}
+html.dot .mr+.mr{border-top:1px dotted var(--line)}
+html.dot .mmo{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:600 11.5px var(--dmono);font-style:normal;letter-spacing:.04em;color:var(--ink);border:1.5px dotted color-mix(in srgb,var(--ink) 55%,transparent)}
+html.dot .mr.fav .mmo{border:1.5px solid var(--blue);color:var(--blue)}
+html.dot .mmo.mb{display:inline-grid;width:30px;height:30px;font-size:10.5px;margin-right:10px;vertical-align:3px}
+html.dot .mr small{font:500 10.5px var(--dmono);text-transform:uppercase;letter-spacing:.05em}
+html.dot .mr .c{font-size:17px;font-family:var(--dmono)}
+html.dot .mqs.stk{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 1px 0 var(--line)}
+html.dot .mqs.stk::before{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
+html.dot .mtl{background:transparent;border:1px solid var(--line)}
+html.dot .mtl span,html.dot .mlh{font:500 10.5px var(--dmono);text-transform:uppercase;letter-spacing:.08em;color:var(--mute)}
+html.dot .mtl small{font-family:var(--dmono);font-size:11px}
+html.dot .mtl.b{background:transparent;color:var(--ink);border-color:var(--blue)}html.dot .mtl.b b{color:var(--blue)}html.dot .mtl.b span,html.dot .mtl.b small{color:var(--mute)}
+html.dot .mlr+.mlr{border-top:1px dotted var(--line)}
+html.dot .mlr small{font:500 10.5px var(--dmono);text-transform:uppercase;letter-spacing:.05em}
+html.dot .mlr .r{font-family:var(--dmono);font-size:13px}
+/* Cél */
+html.dot .gtabs button{background:transparent;box-shadow:none;border:1px solid var(--line);font:600 11.5px var(--dmono);text-transform:uppercase;letter-spacing:.08em;padding:9px 14px}
+html.dot .gtabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+html.dot .gtabs button.add{border-style:dashed;border-color:color-mix(in srgb,var(--blue) 60%,transparent);color:var(--blue)}
+html.dot .gamtl input,html.dot .gin span{font-family:var(--dmono);font-weight:500;letter-spacing:-.02em}
+html.dot .gin2 .gnm{font-family:var(--dmono);font-size:13px;text-transform:uppercase;letter-spacing:.06em}
+html.dot .gring{background:transparent;border:1px solid var(--line)}
+html.dot .gdr{width:100%;height:100%}
+html.dot .gdr circle{fill:var(--ddim);transform-box:fill-box;transform-origin:center}
+html.dot .gdr .d2{fill:color-mix(in srgb,var(--blue) 42%,transparent)}
+html.dot .gdr .d1{fill:var(--blue)}
+html.dot .gdr .d1,html.dot .gdr .d2{animation:gdOn .32s calc(var(--i)*16ms + 80ms) cubic-bezier(.2,.8,.2,1) both}
+@keyframes gdOn{from{opacity:0;transform:scale(.2)}}
+html.dot .gmid b{font-size:44px}
+html.dot .gmid b.gok{font:600 22px var(--dmono);text-transform:uppercase;letter-spacing:.1em}
+html.dot .gmid span{font:500 10.5px var(--dmono);text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+html.dot .glg{border-top:1px dotted var(--line)}html.dot .glg>div{border-bottom:1px dotted var(--line)}
+html.dot .glg span{font:500 11.5px var(--dmono);text-transform:uppercase;letter-spacing:.06em}
+html.dot .glg i{border-radius:50%;width:8px;height:8px}
+html.dot .glg b{font-size:15px}
+html.dot .gsince{font-family:var(--dmono);text-transform:uppercase;letter-spacing:.04em;font-size:10.5px}
+html.dot .gsm{font-family:var(--dmono);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em}
+/* Jelvények: monokróm, pöttyös érmek – a szintet a pöttysűrűség és a keret mutatja (Bronz ritka, Ezüst közepes, Arany sűrű + vastag keret, SV TYPE kiemelő színű, lassan forgó pöttygyűrű) */
+html.dot .achh #achsum b{font-size:24px;vertical-align:-3px}
+html.dot .achs .ac .ai{background:none;box-shadow:none;color:var(--mute);border:1.5px dashed color-mix(in srgb,var(--ink) 28%,transparent);animation:none}
+html.dot .achs .ac.on .ai{background:none;box-shadow:none;color:var(--ink);border:1px solid color-mix(in srgb,var(--ink) 25%,transparent);animation:none}
+html.dot .achs .ac.on .ai::before{content:"";position:absolute;inset:3px;border-radius:50%;box-shadow:none;background:radial-gradient(circle,var(--ink) 0 1.1px,transparent 1.5px) 0 0/var(--dg,6px) var(--dg,6px);-webkit-mask:radial-gradient(circle,transparent 0 57%,#000 59%);mask:radial-gradient(circle,transparent 0 57%,#000 59%);animation:none}
+html.dot .achs .ac.on .ai::after{content:none}
+html.dot .achs .ac.on .ai svg{animation:none;filter:none}
+html.dot .achs .ac.t-b{--dg:9px}html.dot .achs .ac.t-s{--dg:4.6px}html.dot .achs .ac.t-g{--dg:3.2px}html.dot .achs .ac.t-l{--dg:3.2px}
+html.dot .achs .ac.on.t-b .ai{border:1.5px dotted color-mix(in srgb,var(--ink) 55%,transparent)}
+html.dot .achs .ac.on.t-g .ai{border:2px solid var(--ink)}
+html.dot .achs .ac.on.t-l .ai{border:2px solid var(--blue);color:var(--blue)}
+html.dot .achs .ac.on.t-l .ai::before{background-image:radial-gradient(circle,var(--blue) 0 1.1px,transparent 1.5px);animation:svrot 12s linear infinite}
+html.dot .achs .ac.nw::after{content:none}
+html.dot .achs .at b{font-weight:600}
+html.dot .achs .at small{color:var(--mute);font:500 10px/1.4 var(--dmono);text-transform:uppercase;letter-spacing:.06em}
+html.dot .achs .ac.on .at small{color:var(--ink)}html.dot .achs .ac.t-l .at small{color:var(--blue)}
+/* Statisztika, Havonta, „Melyik napra” */
+html.dot .st b{font-size:17px;margin:8px 0 6px;overflow:hidden}
+html.dot .st>span{font:500 10px var(--dmono);text-transform:uppercase;letter-spacing:.07em}
+html.dot #allsec .hn{font:500 11px var(--dmono);text-transform:uppercase;letter-spacing:.06em}
+html.dot #allsec .hv{font-size:14px}
+html.dot .bd+.bd{border-top:1px dotted var(--line)}
+html.dot .bd small{font-family:var(--dmono);font-size:10.5px}
+/* Ünnepnapok */
+html.dot #hols .hl+.hl{border-top:1px dotted var(--line)}
+html.dot #hols .hl small,html.dot #hols .hl .r em{font:500 10.5px var(--dmono);text-transform:uppercase;letter-spacing:.07em}
+html.dot #hols .hl .r{font-family:var(--dmono);font-size:14px}
 </style>
 </head>
 <body>
 <div id="splash"><div class="lg"><svg viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="tkg" x1="0" y1="0" x2="0" y2="1"><stop class="tkg1" offset="0"/><stop class="tkg2" offset="1"/></linearGradient></defs><g class="pcb" transform="rotate(-8 100 112)"><circle class="pk" style="--i:0" cx="72" cy="80" r="15"/><circle class="pk" style="--i:3" cx="96" cy="62" r="17"/><circle class="pk" style="--i:1" cx="122" cy="66" r="16"/><circle class="pk" style="--i:4" cx="138" cy="82" r="12"/><circle class="pk" style="--i:2" cx="106" cy="46" r="12"/><circle class="pk" style="--i:5" cx="80" cy="56" r="10"/><path class="pb" d="M60 88h80l-11 78a8 8 0 0 1-8 7H79a8 8 0 0 1-8-7z"/><rect class="pb" x="54" y="80" width="92" height="14" rx="7"/><path class="ps" d="M86 100l3 62M114 100l-3 62"/></g><g class="tkw" transform="rotate(-14 100 100)"><path class="tk" d="M36 62h128a10 10 0 0 1 10 10v16a12 12 0 0 0 0 24v16a10 10 0 0 1-10 10H36a10 10 0 0 1-10-10v-16a12 12 0 0 0 0-24V72a10 10 0 0 1 10-10z"/><circle class="nt" cx="132" cy="62" r="6"/><circle class="nt" cx="132" cy="138" r="6"/><path class="pf" d="M132 74v52"/><rect class="l1" x="52" y="82" width="52" height="6" rx="3"/><rect class="l2" x="52" y="96" width="38" height="5" rx="2.5"/><rect class="l2" x="52" y="108" width="26" height="5" rx="2.5"/><path class="st" d="M154 88l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/></g></svg></div><div class="bm"><span>Jó éjt, mozi.</span></div><div class="wm">Lumen</div><div class="by">Made by <b>Claude</b></div><div class="thx"><span class="t1">Special thanks to Dávid</span><span class="t2">Special thanks to the popcorn machine</span></div></div>
 <script>/* ritka splash: kb. minden 40. indításkor popcorndoboz (csak kinézet) */if(Math.random()<1/40)document.getElementById("splash").classList.add("pc")</script>
+<script>/* Dot splash: a jegy (ritkán a popcorn) pöttyökből, balról jobbra gyúl fel (--n = oszlop); a „Lumen” felirat dotNum-mal. Csak Dot témában fut */
+if(document.documentElement.classList.contains("dot")){const sp=document.getElementById("splash"),lg=sp.querySelector(".lg");
+ const P=(x,y,n,red)=>`<circle cx="${x*8+4}" cy="${y*8+4}" r="2.9"${red?' class="r"':""} style="--n:${n}"/>`;let t="",p="";
+ for(let y=0;y<9;y++)for(let x=0;x<17;x++){if((x===0||x===16)&&(y===0||y===8||(y>=3&&y<=5)))continue;if(x===12&&y%2===1)continue;if((y===3&&x>=2&&x<=8)||(y===5&&x>=2&&x<=5))continue;t+=P(x,y,x,x===14&&y===4)}
+ ["00101110100","01111111110","11111111111","01111111110","11111111111","11011011011","11011011011","01011011010","01011011010","01011011010","00111111100"].forEach((r,y)=>{for(let x=0;x<r.length;x++)if(r[x]==="1")p+=P(x,y,x+y*.5,y>=5&&y<10&&x%3===0)});
+ lg.insertAdjacentHTML("beforeend",`<svg class="dsk" viewBox="-12 -44 160 160" aria-hidden="true"><g class="dt">${t}</g><g class="dp" transform="translate(24 -8)">${p}</g></svg>`);
+ sp.querySelector(".wm").innerHTML=dotNum("LUMEN")}</script>
 
 <div class="sb"></div>
 <div class="view on" id="vHome">
@@ -674,6 +882,7 @@ body.drg .view,body.drg .page,body.drg .scrim{transition:none}
   </div>
   <div class="gt">Megjelenés</div>
   <div class="grp">
+    <div class="it"><span>Téma</span><div class="seg thm" id="thm" role="group" aria-label="Téma"><button class="press" data-t="lumen">Lumen</button><button class="press" data-t="dot">Dot</button></div></div>
     <div class="it col2"><span>Kiemelő szín</span>
       <div class="accp" aria-hidden="true"><div class="ah"><span class="aic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M15 6v2M15 11v2M15 16v2"/></svg></span><span class="atx"><b>Következő műszak</b><small>Minta · 18:00–23:00</small></span><span class="apl">Naptárba</span></div>
         <div class="anum"><b>128 400 Ft</b><small>Eddig keresett</small></div><div class="abar"><i></i></div></div>
@@ -700,7 +909,7 @@ body.drg .view,body.drg .page,body.drg .scrim{transition:none}
   </div>
   <textarea id="ctext" hidden readonly aria-label="Másolandó szöveg"></textarea>
   <p class="note">Éjfél után esti bérrel számol, szünetet nem von le. Egy műszakra koppintva átírhatod az idejét. Minden adat csak ezen a telefonon van.</p>
-  <p class="made" id="made"><img class="mic" id="mic" src="icon-180.png" alt="" width="60" height="60" draggable="false">Made by <b>Claude</b><span class="ver">Lumen v12.9.2</span></p>
+  <p class="made" id="made"><img class="mic" id="mic" src="icon-180.png" alt="" width="60" height="60" draggable="false">Made by <b>Claude</b><span class="ver">Lumen v13</span></p>
 </div></div>
 
 <nav class="tabs" id="tabs"><button class="tb press on" data-v="vHome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>Főoldal</span></button><button class="tb press" data-v="vMates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.6c2.6.2 4.4 1.9 5 5.4"/></svg><span>Munkatársak</span></button><button class="tb press" data-v="vGoal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg><span>Cél</span></button><button class="tb press" data-v="vAch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><span>Jelvények</span></button><button class="tb press" data-v="vSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.3"/><circle cx="10" cy="17" r="2.3"/></svg><span>Beállítások</span></button></nav>
@@ -803,7 +1012,7 @@ function dlPend(){return(DATA.weeks||[]).filter(w=>w.dl&&new Date(w.dl)>NOW&&!EX
 function pending(){return Object.keys(DATA.shifts).filter(d=>d>=today&&!eff(d).bad).sort().filter(d=>!EXP[key(d)])}
 function key(d){const c=calc(d);return d+"@"+c.e.a+"-"+c.end}
 function countTo(el,to){const from=shown,t0=performance.now(),D=matchMedia("(prefers-reduced-motion: reduce)").matches?0:650;shown=to;
-  const step=t=>{const k=D?1:Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);el.innerHTML=fmt(from+(to-from)*e)+"<small>Ft</small>";if(k<1)requestAnimationFrame(step)};requestAnimationFrame(step)}
+  const step=t=>{const k=D?1:Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);el.innerHTML=netHtml(from+(to-from)*e,k>=1);if(k<1)requestAnimationFrame(step)};requestAnimationFrame(step)}
 
 function kind(raw){const t=String(raw||"").toLowerCase().replace(/\s/g,"");return /^ny/.test(t)&&/z$/.test(t)?"nyitástól zárásig":/^ny|^-/.test(t)?"nyitás":/z$/.test(t)?"zárás":"becsült idő"}
 const first=n=>{const p=n.trim().split(/\s+/);return p.length>1?p[p.length-1]:p[0]}
@@ -816,6 +1025,13 @@ function mates(d,e,c){const rk=n=>isFv(n)?2:isAv(n)?1:0;const L=matesOf(d,e,c).s
   return "veled: "+(f.length>3?f.slice(0,3).join(", ")+` +${f.length-3}`:f.join(", "))}
 /* kezdés és vége külön, jól elválasztva + hossz */
 function tmHtml(c){if(c.e.bad)return `<span class="tm">Nincs pontos idő</span>`;return `<span class="tm"><b>${hm(c.e.a)}</b><i class="ar">→</i><b>${hm(c.end%1440)}</b><small>${hrs(c.mins)} óra</small></span>`}
+/* Dot téma (Nothing-szerű): pontmátrix számok – csak ha a téma "dot" ÉS a ui-stilus dotNum segédje elérhető; Lumenben sima szöveg */
+const dotOn=()=>document.documentElement.classList.contains("dot")&&typeof dotNum==="function";
+const dotTx=(s,cls)=>dotOn()?dotNum(String(s),cls):esc(String(s));
+/* nagy idő (következő műszak, műszak oldal): Dotban pontmátrix, egyébként a megszokott */
+function tmBig(c){if(!dotOn()||c.e.bad)return tmHtml(c);return `<span class="tm dtm">${dotNum(hm(c.e.a),"dnt")}<i class="ar">→</i>${dotNum(hm(c.end%1440),"dnt")}<small>${hrs(c.mins)} óra</small></span>`}
+/* nagy fizetés-szám: pörgetés közben sima számjegy (gyors), a végértéken Dotban pontmátrix */
+const netHtml=(v,fin)=>(fin&&dotOn()?dotNum(fmt(v),"dnet"):fmt(v))+"<small>Ft</small>";
 /* munkatársak listája időkkel (lenyitott műszak, részletek ablak, Munkatársak fül) */
 function pplHtml(d){const e=eff(d),c=calc(d),L=(DATA.mates||{})[d]||[],ok=new Set(matesOf(d,e,c).map(norm));const rk=n=>isFv(n)?2:isAv(n)?1:0;
   const P=L.filter(x=>ok.has(norm(x[0]))).sort((x,y)=>rk(y[0])-rk(x[0])||spec(x[1],d).a-spec(y[1],d).a).map(([n,raw])=>{const o=spec(raw,d),fv=isFv(n),av=isAv(n);return `<span class="pp${fv?" fav":av?" avp":""}">${esc(n)}${fv?" ✦":av?" ⚡":""}<small>${o.bad?esc(raw):hm(o.a)+"–"+(/z$/i.test(raw)?"zárás":hm(o.b))}</small></span>`});
@@ -974,7 +1190,7 @@ function openShift(d,re){SHD=d;const e=eff(d),c=calc(d),dt=pd(d),sv=svFor(d,e,c)
   $("pShT").textContent=hday(d);
   $("pShB").innerHTML=`<h2 class="psh">${HU_DL[dt.getDay()]}, ${hday(d)}</h2><p class="note psr">${liveNow().d===d?"most zajlik":rel(d)}${isHol(d)?' · <span class="hg">ünnepnap, dupla bér</span>':""}</p>
    <div>
-   <div class="shd"><div class="tmb big2">${tmHtml(c)}</div><div class="nsub">${esc(src)}</div>
+   <div class="shd"><div class="tmb big2">${tmBig(c)}</div><div class="nsub">${esc(src)}</div>
    <div class="shg"><div><span>Fizetés</span><b>${e.bad?"–":ft(c.pay)}</b></div><div><span>18:00 előtt / után</span><b>${hrs(c.dm)} + ${hrs(c.em)} óra</b></div></div>
    ${sv.length?`<div class="nsub" style="margin-top:10px"><span class="svt">SV: ${sv.map(esc).join(", ")}</span></div>`:""}</div>
    <div class="gt" style="margin:14px 2px 8px">Veled ${d<today?"dolgozott":"dolgozik"}</div>${pplHtml(d)}
@@ -1013,10 +1229,10 @@ function render(){edStop();
     const dt=pd(d),e=c.e,past=d<today;
     if(e.canc){const o=OV[d]?{a:tmin(OV[d].a),b:tmin(OV[d].b)}:spec(DATA.shifts[d],d),tt=o.bad?"":`${hm(o.a)} – ${hm(o.b)}`;
       const ed2=openEdit===d?edHtml(d):"";
-      return `<li class="sh cnc${past?" past":""}"><button class="row" data-ed="${d}" aria-expanded="${openEdit===d}"><span class="dt"><b>${dt.getDate()}</b><i>${HU_D[dt.getDay()]}</i></span><span><span class="tm"><s>${tt||"Műszak"}</s></span><span class="tags"><span class="x">${CNL[e.canc]||"lemondtad"}</span></span></span><span class="pay">0 Ft</span></button>${ed2}</li>`}
+      return `<li class="sh cnc${past?" past":""}"><button class="row" data-ed="${d}" aria-expanded="${openEdit===d}"><span class="dt"><b>${dotTx(dt.getDate(),"ddt")}</b><i>${HU_D[dt.getDay()]}</i></span><span><span class="tm"><s>${tt||"Műszak"}</s></span><span class="tags"><span class="x">${CNL[e.canc]||"lemondtad"}</span></span></span><span class="pay">0 Ft</span></button>${ed2}</li>`}
     const tg=[isHol(d)?'<span class="hg">ünnepnap · dupla bér</span>':"",e.bad?'<span class="x">koppints, és add meg az időt</span>':"",e.est?kind(DATA.shifts[d]):"",svTag(d,e,c),mates(d,e,c),e.own?"átírtad":"",ADD[d]?'<span class="h">felvetted</span>':"",LEAD[d]?'<span class="wr">leadásra kiírva</span>':"",d===today?'<span class="h">ma</span>':""].filter(Boolean).join(" · ");
     const ed=openEdit===d?edHtml(d):"";
-    return `<li class="sh${past?" past":""}${d===today?" today":""}"><button class="row" data-ed="${d}" aria-expanded="${openEdit===d}"><span class="dt"><b>${dt.getDate()}${favOn(d)?'<sup class="fv">✦</sup>':""}${avOn(d)?'<sup class="avs">⚡</sup>':""}</b><i>${HU_D[dt.getDay()]}</i></span><span>${tmHtml(c)}${tg?`<span class="tags">${tg}</span>`:""}${NOTES[d]?`<span class="tags nte">📝 ${esc(NOTES[d])}</span>`:""}</span><span class="pay">${e.bad?"–":ft(c.pay)}</span></button>${ed}</li>`}).join(""):`<li class="empty">${DATA.at?emptyArt("ticket","Ebben a hónapban nincs műszakod","Ha felveszel egyet, lent hozzáadhatod."):emptyArt("popcorn","Még nincs beosztás betöltve","Nyomd meg a jobb felső gombot, és válaszd ki az Excelt a Letöltések mappából.")}</li>`;
+    return `<li class="sh${past?" past":""}${d===today?" today":""}"><button class="row" data-ed="${d}" aria-expanded="${openEdit===d}"><span class="dt"><b>${dotTx(dt.getDate(),"ddt")}${favOn(d)?'<sup class="fv">✦</sup>':""}${avOn(d)?'<sup class="avs">⚡</sup>':""}</b><i>${HU_D[dt.getDay()]}</i></span><span>${tmHtml(c)}${tg?`<span class="tags">${tg}</span>`:""}${NOTES[d]?`<span class="tags nte">📝 ${esc(NOTES[d])}</span>`:""}</span><span class="pay">${e.bad?"–":ft(c.pay)}</span></button>${ed}</li>`}).join(""):`<li class="empty">${DATA.at?emptyArt("ticket","Ebben a hónapban nincs műszakod","Ha felveszel egyet, lent hozzáadhatod."):emptyArt("popcorn","Még nincs beosztás betöltve","Nyomd meg a jobb felső gombot, és válaszd ki az Excelt a Letöltések mappából.")}</li>`;
   {const[py,pm]=[mo===1?y-1:y,mo===1?12:mo-1],pk=`${py}-${pad(pm)}`,ps=mSum(pk),pv=ps.past+ps.fut,cel=$("cmp");
    if(DATA.at&&days.length&&pv>0){const df=Math.round((net-pv)/pv*100);cel.hidden=false;cel.className="cmp "+(df>=0?"up":"dn");cel.innerHTML=`<i>${df>=0?"▲":"▼"}</i> ${Math.abs(df)}% ${HU_HOZ[pm-1]} képest`}else cel.hidden=true}
   const n=pending().length+dlPend().length;$("icst").textContent=n?`Naptárba (${n})`:"Naptárba";
@@ -1038,10 +1254,10 @@ function payPart(d,uptoAbs){const e=eff(d);if(e.bad)return 0;const c=calc(d);let
 function liveNow(){const n=new Date(),t=iso(n);for(const d of [addD(t,-1),t]){if(!(d in DATA.shifts))continue;const e=eff(d);if(e.bad)continue;const c=calc(d);const rel_=(n-pd(d))/6e4;if(rel_>=e.a&&rel_<c.end)return{d,e,c,rel:rel_,part:payPart(d,rel_)}}return{part:0}}
 function liveCard(){const n=new Date(),t=iso(n),L=liveNow(),el=$("live");
   if(L.d){const tot=L.c.pay,left=L.c.end-L.rel,p=(L.rel-L.e.a)/(L.c.end-L.e.a)*100;
-    if(!el.dataset.on){el.dataset.on="1";el.innerHTML=`<div class="lv"><div class="lvh"><span class="dot"></span>Most dolgozol · ${hm(L.e.a)}–${hm(L.c.end%1440)}</div><div class="lvn" id="lvn"></div><div class="gbar"><i id="lvb"></i></div><div class="lvs" id="lvs"></div></div>`}
+    if(!el.dataset.on){el.dataset.on="1";el.innerHTML=`<div class="lv"><div class="lvh"><span class="ldot"></span>Most dolgozol · ${hm(L.e.a)}–${hm(L.c.end%1440)}</div><div class="lvn" id="lvn"></div><div class="gbar"><i id="lvb"></i></div><div class="lvs" id="lvs"></div></div>`}
     $("lvn").innerHTML=L.part.toLocaleString("hu-HU",{minimumFractionDigits:2,maximumFractionDigits:2}).replace(/[\u00a0\u202f]/g," ")+"<small> Ft</small>";$("lvb").style.width=p+"%";
     $("lvs").textContent=`a ${ft(tot)}-ból · még ${Math.floor(left/60)} ó ${Math.floor(left%60)} p · ${fmt(((L.rel%1440>=1080||L.rel%1440<360)?S.r2:S.r1)*(isHol(t)?S.hol:1))} Ft/óra`;
-    if(HERO.cur&&cur===today.slice(0,7)){$("net").innerHTML=fmt(HERO.base+L.part)+"<small>Ft</small>"}return}
+    if(HERO.cur&&cur===today.slice(0,7)){$("net").innerHTML=netHtml(HERO.base+L.part,1)}return}
   if(el.dataset.on){el.dataset.on="";el.innerHTML="";render();return}
   if(DATA.at&&(t in DATA.shifts)){const e=eff(t);if(!e.bad){const c=calc(t),now=(n-pd(t))/6e4;if(now<e.a){const w=e.a-now,h=`<div class="lv pre"><div class="lvh">Ma ${hm(e.a)}-tól</div><div class="lvs" style="margin:0"><b>${ft(c.pay)}</b> vár rád · ${Math.floor(w/60)} ó ${Math.floor(w%60)} p múlva kezdesz</div></div>`;if(el._h!==h){el._h=h;el.innerHTML=h}return}}}
   /* másodpercenként fut: csak akkor nyúl a DOM-hoz, ha tényleg változott valami */
@@ -1054,14 +1270,14 @@ function renderCards(){
   const out=[];
   if(DATA.at){
     const fut=Object.keys(DATA.shifts).filter(d=>d>=today&&!eff(d).bad&&!isDone(d)).sort();
-    if(fut.length){const d=fut[0],c=calc(d),dt=pd(d),nm=matesOf(d,eff(d),c).length;const L=svFor(d,eff(d),c),rr=liveNow().d===d?"most zajlik":rel(d);out.push(`<button class="nc b go press nxt" data-shift="${d}"><div><div class="nt">Következő műszak · ${rr}</div><div class="nv">${HU_DL[dt.getDay()]}, ${hday(d)}</div><div class="tmb big2">${tmHtml(c)}</div><div class="chp"><span>${ft(c.pay)}</span>${L.length?`<span class="svt">SV: ${L.map(esc).join(", ")}</span>`:""}${nm?`<span>${nm} munkatárs</span>`:""}${isHol(d)?'<span class="hg">ünnepnap</span>':""}</div></div><span class="chev">›</span></button>`);if(avOn(d)){const nm=matesOf(d,eff(d),c).find(isAv);out.push(`<div class="nc avc"><div class="ico">⚡</div><div><div class="nt">${esc(first(nm))} is veled lesz ${rel(d)}</div><div class="nv">${esc(S.avm||AVD)}</div></div></div>`)}}
+    if(fut.length){const d=fut[0],c=calc(d),dt=pd(d),nm=matesOf(d,eff(d),c).length;const L=svFor(d,eff(d),c),rr=liveNow().d===d?"most zajlik":rel(d);out.push(`<button class="nc b go press nxt" data-shift="${d}"><div><div class="nt">Következő műszak · ${rr}</div><div class="nv">${dotOn()?`<span class="dwd">${HU_DL[dt.getDay()]}</span>${dotNum(pad(dt.getMonth()+1)+"."+pad(dt.getDate()),"dnd")}`:`${HU_DL[dt.getDay()]}, ${hday(d)}`}</div><div class="tmb big2">${tmBig(c)}</div><div class="chp"><span>${ft(c.pay)}</span>${L.length?`<span class="svt">SV: ${L.map(esc).join(", ")}</span>`:""}${nm?`<span>${nm} munkatárs</span>`:""}${isHol(d)?'<span class="hg">ünnepnap</span>':""}</div></div><span class="chev">›</span></button>`);if(avOn(d)){const nm=matesOf(d,eff(d),c).find(isAv);out.push(`<div class="nc avc"><div class="ico">⚡</div><div><div class="nt">${esc(first(nm))} is veled lesz ${rel(d)}</div><div class="nv">${esc(S.avm||AVD)}</div></div></div>`)}}
     {const wc=weekCard();if(wc)out.push(wc)}
     const w=(DATA.weeks||[])[0];
     if(w&&w.dl){const dl=new Date(w.dl),ms=dl-NOW;if(ms>0){const days=Math.floor(ms/864e5),h=Math.floor(ms/36e5);const left=days>=1?`még ${days} nap`:`még ${h} óra`;const end=addD(w.start,6);
       const wd=(w.d||[]).map((x,k)=>x&&x[0]?HU_D[pd(addD(w.start,k)).getDay()]:"").filter(Boolean);
       /* kétsoros szalag: bal = mit/mikorig, jobb = mennyi idő van még; narancs csak 2 napon belül */
       const urg=ms<2*864e5,dlt=`${hday(iso(dl))} ${pad(dl.getHours())}:${pad(dl.getMinutes())}`,hw=`${hday(w.start)}–${hday(end)}`;
-      out.push(`<div class="nc dlb${w.req?" sm":" b"}" aria-label="Beírás a ${hw} hétre, határidő ${dlt}, ${left}"><div class="ico">${I.pen}</div><div><div class="dl1">${w.req?`Határidő: ${dlt}`:`<span class="${urg?"u":"k"}">Írj beót!</span> · ${dlt}`}</div><div class="dl2">${w.req?`${w.req} napra írtál be: ${wd.join(", ")}`:`a ${hw} hétre · még nincs beírt napod`}</div></div><div class="dlr${urg?" u":""}"><b>${days>=1?days:h}</b><small>${days>=1?"nap":"óra"}</small></div></div>`)}}
+      out.push(`<div class="nc dlb${w.req?" sm":" b"}" aria-label="Beírás a ${hw} hétre, határidő ${dlt}, ${left}"><div class="ico">${I.pen}</div><div><div class="dl1">${w.req?`Határidő: ${dlt}`:`<span class="${urg?"u":"k"}">Írj beót!</span> · ${dlt}`}</div><div class="dl2">${w.req?`${w.req} napra írtál be: ${wd.join(", ")}`:`a ${hw} hétre · még nincs beírt napod`}</div></div><div class="dlr${urg?" u":""}"><b>${dotTx(days>=1?days:h,"ddl")}</b><small>${days>=1?"nap":"óra"}</small></div></div>`)}}
     if(S.payday>0){const pdOf=(y,m)=>new Date(y,m,Math.min(S.payday,new Date(y,m+1,0).getDate()));let p=pdOf(NOW.getFullYear(),NOW.getMonth());if(iso(p)<today)p=pdOf(NOW.getFullYear(),NOW.getMonth()+1);const pm=new Date(p.getFullYear(),p.getMonth()-1,1),pk=iso(pm).slice(0,7),s=mSum(pk),run=pk===today.slice(0,7);
       out.push(card("card","Következő fizetés",`${hday(iso(p))} · ${rel(iso(p))}<div class="nsub">${HU_M[pm.getMonth()]}i munka: ${run?`<em>${ft(s.past)} eddig megvan</em>${s.fut?` · még ${ft(s.fut)} beosztva`:""}`:`<em>kb. ${ft(s.past+s.fut)}</em>`}</div>`,0,1))}
     if(DATA.eu){const n=dd(today,DATA.eu);if(n<45)out.push(card("med","Egészségügyi kiskönyv",n<0?`<span class="wr">Lejárt: ${DATA.eu.replace(/-/g,". ")}.</span>`:`Lejár: ${DATA.eu.replace(/-/g,". ")}. · <span class="wr">${rel(DATA.eu)}</span>`))}
@@ -1083,7 +1299,7 @@ function renderStats(){renderBest();
   const GR={all:["Összes",0],m1:["1 hónap",30],m2:["2 hónap",61],m6:["Fél év",183]},gk=GR[S.gr]?S.gr:"all",from=GR[gk][1]?addD(today,-GR[gk][1]):"";
   const wk=(DATA.weeks||[]).filter(w=>w.start<today&&w.req>0&&w.start>=from);let rq=0,gt=0;wk.forEach(w=>{rq+=w.req;gt+=w.got});
   const t=[["Eddig összesen",ft(tot),`${all.length} műszak · ${HU_M[+ms[0].slice(5)-1]} óta`],["Átlag / műszak",ft(pay/all.length),`${hrs(min/all.length)} óra átlagosan`],["Átlag órabér",ft(pay/(min/60)),"pótlékokkal együtt"],["Megkapott napok",rq?Math.min(100,Math.round(gt/rq*100))+"%":"–",rq?`${gt} / ${rq} beírt nap · ${wk.length} hét`:"nincs adat erre az időszakra"]];
-  $("stats").innerHTML=t.map(x=>`<div class="st"><span>${x[0]}</span><b>${x[1]}</b><span>${x[2]}</span></div>`).join("")
+  $("stats").innerHTML=t.map(x=>`<div class="st"><span>${x[0]}</span><b>${dnum(x[1],"stn")}</b><span>${x[2]}</span></div>`).join("")
    +`<div class="grs"><span>Megkapott napok:</span><div class="seg">${Object.entries(GR).map(([k,[n]])=>`<button class="press${k===gk?" on":""}" data-gr="${k}">${n}</button>`).join("")}</div></div>`;
   $("stats").querySelectorAll("[data-gr]").forEach(b=>b.onclick=()=>{S.gr=b.dataset.gr;ls.set("mm.set",S);renderStats()});
 }
@@ -1091,7 +1307,7 @@ function renderHist(){
   const ms=[...new Set(Object.keys(DATA.shifts).map(d=>d.slice(0,7)))].sort();
   $("allsec").hidden=!ms.length;if(!ms.length)return;
   const sums=ms.map(m=>[m,mSum(m)]);const max=Math.max(1,...sums.map(([,s])=>s.past+s.fut));
-  $("hist").innerHTML=sums.map(([m,s])=>{const mo=+m.slice(5),yr=m.slice(0,4)!==today.slice(0,4)?`<small>${m.slice(0,4)}.</small>`:"";return `<button class="hr press${m===cur?" on":""}" data-ym="${m}"><span class="hn">${yr}${HU_M[mo-1].slice(0,3)}.</span><span class="trk"><i style="width:${s.past/max*100}%"></i>${s.fut?`<i style="width:${s.fut/max*100}%"></i>`:""}</span><span class="hv">${ft(s.past+s.fut)}</span></button>`}).join("");
+  $("hist").innerHTML=sums.map(([m,s])=>{const mo=+m.slice(5),yr=m.slice(0,4)!==today.slice(0,4)?`<small>${m.slice(0,4)}.</small>`:"";return `<button class="hr press${m===cur?" on":""}" data-ym="${m}"><span class="hn">${yr}${HU_M[mo-1].slice(0,3)}.</span><span class="trk"><i style="width:${s.past/max*100}%"></i>${s.fut?`<i style="width:${s.fut/max*100}%"></i>`:""}</span><span class="hv">${dnum(ft(s.past+s.fut),"hvn")}</span></button>`}).join("");
 }
 const HN={"01-01":"Újév","03-15":"Nemzeti ünnep","05-01":"Munka ünnepe","08-20":"Államalapítás","10-23":"Nemzeti ünnep","11-01":"Mindenszentek","12-24":"Szenteste","12-25":"Karácsony","12-26":"Karácsony"};
 function renderHols(){
@@ -1371,6 +1587,11 @@ function applyAcc(){accSet(S.accent)}
 function drawSw(){$("sw").innerHTML=ACC.map(c=>`<button class="press${(S.accent||ACC[0])===c?" on":""}" data-c="${c}" style="background:${c}" aria-label="${c}"></button>`).join("")+`<label aria-label="Egyéni szín"><input type="color" id="cc" value="${S.accent||ACC[0]}"></label>`;
   $("cc").oninput=e=>{S.accent=e.target.value;applyAcc()};$("cc").onchange=e=>{S.accent=e.target.value;ls.set("mm.set",S);drawSw()}}
 $("sw").addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;S.accent=b.dataset.c===ACC[0]?"":b.dataset.c;applyAcc();ls.set("mm.set",S);drawSw()});
+/* téma: Lumen / Dot – élő váltás újratöltés nélkül; S.theme az mm.set része, így a mentés/visszaállítás is viszi.
+   Akinek a nézete Dot-ban mást rajzol: figyelje a "lumen:theme" eseményt (detail = "lumen" | "dot") */
+function drawThm(){const t=S.theme==="dot"?"dot":"lumen";document.querySelectorAll("#thm [data-t]").forEach(b=>b.classList.toggle("on",b.dataset.t===t))}
+function setTheme(t){S.theme=t==="dot"?"dot":"lumen";document.documentElement.classList.toggle("dot",S.theme==="dot");applyAcc();ls.set("mm.set",S);drawThm();render();try{document.dispatchEvent(new CustomEvent("lumen:theme",{detail:S.theme}))}catch(x){}}
+$("thm").addEventListener("click",e=>{const b=e.target.closest("[data-t]");if(b&&b.dataset.t!==(S.theme==="dot"?"dot":"lumen"))setTheme(b.dataset.t)});drawThm();
 function confetti(){const ch=["🍿","🎟️","✦","🎬"];for(let i=0;i<34;i++){const e=document.createElement("span");e.className="cf";e.textContent=ch[i%ch.length];e.style.left=Math.random()*100+"vw";e.style.animationDuration=(1.6+Math.random()*1.6)+"s";e.style.animationDelay=Math.random()*.5+"s";e.style.setProperty("--r",(Math.random()*720-360)+"deg");if(e.textContent==="✦")e.style.color="var(--blue)";document.body.appendChild(e);setTimeout(()=>e.remove(),4000)}}
 let taps=0,tapT;
 $("made").addEventListener("click",()=>{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)$("mic").animate([{transform:"scale(1)"},{transform:"scale(.86) rotate(-6deg)"},{transform:"scale(1.08) rotate(3deg)"},{transform:"none"}],{duration:420,easing:"cubic-bezier(.2,1.4,.4,1)"});taps++;clearTimeout(tapT);tapT=setTimeout(()=>taps=0,1500);if(taps>=5){taps=0;confetti();if(!S.secret){S.secret=1;ls.set("mm.set",S);toast("✦ Titkos beállítás feloldva");$("secret").hidden=false}else toast("Jó műszakot! 🍿")}});
@@ -1442,7 +1663,7 @@ const AIC={"tk": "<path d=\"M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v
 function achIc(id){const M=[["ppl100","globe"],["ppl50","team"],["xmas","tree"],["nye","glass"],["ny1","spark"],["late","star"],["long","hour"],["notes","pen"],["sun","sun"],["sec","key"],["bff","heart"],["fav","spark"],["av","shield"],["perf","target"],["w40","mail"],["goal","flag"],["wr","film"],["hol","gift"],["st","fire"],["wk","sun"],["cl","moon"],["op","rise"],["s","tk"],["h","clk"],["f","cash"],["m","mon"]];const k=(M.find(([p])=>id.startsWith(p))||[0,"star"])[1];return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${AIC[k]}</svg>`}
 const BASIC=id=>/^(s|h|f|m)\d/.test(id);
 function renderAch(){const x=achStats(),got=ACH.filter(a=>ACHD[a[0]]).length,vis=ACH.filter(a=>BASIC(a[0])||ACHD[a[0]]),hid=ACH.length-vis.length;
-  $("achsum").innerHTML=`<b>${got}</b> megszerzett jelvény${hid?` · <span style="color:var(--blue)">${hid} titkos még rejtve</span>`:""}`;$("achbar").style.width=(vis.length?got/vis.length*100:0)+"%";
+  $("achsum").innerHTML=`<b>${dnum(got,"acn")}</b> megszerzett jelvény${hid?` · <span style="color:var(--blue)">${hid} titkos még rejtve</span>`:""}`;$("achbar").style.width=(vis.length?got/vis.length*100:0)+"%";
   const ord={l:0,g:1,s:2,b:3},cat=id=>"shfm".indexOf(id[0]);let seen=ls.get("mm.achs",null);if(!seen)seen=Object.keys(ACHD);const nw=new Set(Object.keys(ACHD).filter(k=>!seen.includes(k)));
   const Lx=[...vis].sort((a,b)=>nw.has(b[0])-nw.has(a[0])||(!!ACHD[b[0]])-(!!ACHD[a[0]])||(ACHD[a[0]]?ord[a[4]]-ord[b[4]]:cat(a[0])-cat(b[0])||a[6]-b[6]));
   /* a még meg nem nézett, frissen megszerzett jelvények egyszer megcsillannak („Új”) */
@@ -1658,6 +1879,11 @@ function enter(root){if(matchMedia("(prefers-reduced-motion: reduce)").matches)r
 function show(v){if(v===view)return;view=v;$("tabs").style.setProperty("--ti",[...document.querySelectorAll(".tb")].findIndex(b=>b.dataset.v===v));if(v==="vHome"&&cur!==today.slice(0,7)){cur=today.slice(0,7);openEdit=null;render()}document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id===v));document.querySelectorAll(".tb").forEach(b=>b.classList.toggle("on",b.dataset.v===v));window.scrollTo(0,0);if(v==="vMates")renderMates();if(v==="vGoal")renderGoal();if(v==="vAch")renderAch();enter($(v));const tb=document.querySelector(`.tb[data-v="${v}"] svg`);if(tb)tb.animate([{transform:"scale(.7)"},{transform:"scale(1.15)"},{transform:"scale(1.06) translateY(-1px)"}],{duration:380,easing:"cubic-bezier(.2,1.4,.4,1)"})}
 $("tabs").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(b)show(b.dataset.v)});
 
+/* Dot téma: pontmátrix szám (dotNum a ui-stilus segédje), csak dot témában; Lumenben a szöveg változatlan */
+function isDot(){return document.documentElement.classList.contains("dot")}
+function dnum(s,c){s=String(s);if(!isDot()||typeof dotNum!=="function")return s;const m=s.match(/^([\-−]?\d[\d\s  .,]*)(.*)$/);if(!m)return s;
+  try{const u=m[2].trim(),num=m[1].trim();if(u==="Ft")return dotNum(num+" Ft",c||"");/* a dotNum a %-ot és a ×-et nem ismeri: ezek sima jelként jönnek */return dotNum(num,c||"")+(u?`<span class="${/^[%×]$/.test(u)?"dnx":"dnu"}">${u}</span>`:"")}catch(e){return s}}
+
 /* munkatársak */
 function mateStats(){const M={};const ds=Object.keys(DATA.shifts).sort();
   for(const d of ds){if(CANC[d])continue;const e=eff(d),c=calc(d);for(const n of matesOf(d,e,c)){const k=norm(n);const o=M[k]=M[k]||{n,k,past:0,fut:0,last:null,next:null,ds:[],fd:[]};if(d<today){o.past++;o.last=d;o.ds.push(d)}else{o.fut++;if(!o.next)o.next=d;o.fd.push(d)}}}
@@ -1671,7 +1897,7 @@ function renderMates(){
   const q=norm($("mq").value||"");let L=mateStats().filter(o=>!q||norm(o.n).includes(q)).sort((a,b)=>b.past-a.past||b.fut-a.fut);
   const max=Math.max(1,...L.map(o=>o.past));
   $("mtop").innerHTML=L.slice(0,q?60:25).map(o=>{const fv=S.fav&&norm(o.n)===norm(S.fav);const sub=[o.last?`utoljára ${hday(o.last)}`:"",o.next?`legközelebb ${hday(o.next)}`:""].filter(Boolean).join(" · ");
-    return `<div class="mr press${fv?" fav":""}" role="button" tabindex="0" data-mk="${esc(o.k)}"><span><b>${esc(o.n)}${fv?" ✦":""}</b><small>${sub||"–"}</small></span><span class="bar"><i style="width:${o.past/max*100}%"></i></span><span class="c">${o.past}×</span></div>`}).join("")||'<div class="mr"><span><b>Nincs találat</b></span></div>';
+    const D=isDot();return `<div class="mr press${fv?" fav":""}${D?" dm":""}" role="button" tabindex="0" data-mk="${esc(o.k)}">${D?`<i class="mmo" aria-hidden="true">${esc(mono(o.n))}</i>`:""}<span><b>${esc(o.n)}${fv?" ✦":""}</b><small>${sub||"–"}</small></span><span class="bar"><i style="width:${o.past/max*100}%"></i></span><span class="c">${D?dnum(o.past+"×","dmc"):o.past+"×"}</span></div>`}).join("")||'<div class="mr"><span><b>Nincs találat</b></span></div>';
   $("mnote").textContent="Hány ledolgozott műszakon voltatok egy időben beosztva.";
 }
 $("mq").oninput=renderMates;
@@ -1681,8 +1907,8 @@ function openMate(k){const o=mateStats().find(z=>z.k===k);if(!o)return;const fv=
   const tile=(l,v,s,b)=>`<div class="mtl${b?" b":""}"><span>${l}</span><b>${v}</b>${s?`<small>${s}</small>`:""}</div>`;
   const row=(d,f)=>`<div class="mlr${f?" f":""}"><span><b>${hday(d)}</b><small>${HU_DL[pd(d).getDay()]}${f?" · "+rel(d):""}</small></span><span class="r">${mateTime(d,k)||"–"}</span></div>`;
   const rows=[...o.fd.map(d=>row(d,1)),...o.ds.slice().reverse().map(d=>row(d,0))].join("");
-  openSheet(`<h3>${esc(o.n)}${fv?" ✦":""}</h3><p>${o.past?`${o.past} közös ledolgozott műszak`:"Még nem dolgoztatok együtt"}${o.fut?` · ${o.fut} beosztva`:""}</p>
-   <div class="mst">${tile("Közös műszak",o.past+"×","",1)}${tile("Következő közös",nx?hday(nx):"–",nx?rel(nx):"nincs beosztva")}${tile("Első közös",o.ds[0]?hday(o.ds[0]):"–",o.ds[0]?HU_DL[pd(o.ds[0]).getDay()]:"")}${tile("Utolsó közös",o.last?hday(o.last):"–",o.last?HU_DL[pd(o.last).getDay()]:"")}</div>
+  openSheet(`<h3>${isDot()?`<i class="mmo mb" aria-hidden="true">${esc(mono(o.n))}</i>`:""}${esc(o.n)}${fv?" ✦":""}</h3><p>${o.past?`${o.past} közös ledolgozott műszak`:"Még nem dolgoztatok együtt"}${o.fut?` · ${o.fut} beosztva`:""}</p>
+   <div class="mst">${tile("Közös műszak",dnum(o.past+"×","dmt"),"",1)}${tile("Következő közös",nx?hday(nx):"–",nx?rel(nx):"nincs beosztva")}${tile("Első közös",o.ds[0]?hday(o.ds[0]):"–",o.ds[0]?HU_DL[pd(o.ds[0]).getDay()]:"")}${tile("Utolsó közös",o.last?hday(o.last):"–",o.last?HU_DL[pd(o.last).getDay()]:"")}</div>
    <div class="mll">${rows?`<div class="mlh">Közös műszakok · az ő ideje</div><div class="grp">${rows}</div>`:""}</div>`)}
 $("mtop").addEventListener("click",e=>{const r=e.target.closest("[data-mk]");if(r)openMate(r.dataset.mk)});
 $("mtop").addEventListener("keydown",e=>{const r=e.target.closest("[data-mk]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openMate(r.dataset.mk)}});
@@ -1716,9 +1942,11 @@ function renderGoal(){gTabs();const g=GOALS[GSEL],amt=+g.a||0;const r=S.r1||2080
   const C=2*Math.PI*52,pe=e1/amt,pf=f1/amt,done=rest<=0;
   const ring=`<svg viewBox="0 0 120 120" class="grg" aria-hidden="true"><circle cx="60" cy="60" r="52" class="g0"/>
     ${pe+pf>0?`<circle cx="60" cy="60" r="52" class="g2" style="--L:${(C*(pe+pf)).toFixed(1)};--C:${C.toFixed(1)}"/>`:""}${pe>0?`<circle cx="60" cy="60" r="52" class="g1" style="--L:${(C*pe).toFixed(1)};--C:${C.toFixed(1)}"/>`:""}</svg>`;
-  const mid=done?`<b class="gok">Megvan!</b><span>${e1>=amt?"már összegyűlt":"a beosztott műszakaiddal"}</span>`:`<b>${n2}</b><span>műszak kell még</span>`;
-  $("gres").innerHTML=`<div class="gr"><div class="gring${done?" done":""}"><div class="gwrap">${ring}<div class="gmid">${mid}</div></div>
-    <div class="glg"><div><i class="d1"></i><span>Eddig keresett<label class="gsince">${hday(t0)} óta ›<input type="date" id="gsince" value="${t0}" max="${today}" aria-label="Mióta gyűjtesz?"></label></span><b>${ft(e1)}</b></div><div><i class="d2"></i><span>Beosztva</span><b>${ft(f1)}</b></div><div><i class="d0"></i><span>Hiányzik</span><b>${ft(rest)}</b></div></div>
+  /* Dot téma: a gyűrű 60 pöttyből áll, sorban felgyúlnak (keresett = teli, beosztva = félig, a többi halvány) */
+  const D=isDot(),ND=60,ring2=D?`<svg viewBox="0 0 120 120" class="gdr" aria-hidden="true">${Array.from({length:ND},(_,i)=>{const a=i/ND*2*Math.PI-Math.PI/2,x=(60+52*Math.cos(a)).toFixed(2),y=(60+52*Math.sin(a)).toFixed(2),p=(i+.5)/ND,k=p<=pe?"d1":p<=pe+pf?"d2":"d0";return `<circle cx="${x}" cy="${y}" r="2.6" class="${k}" style="--i:${i}"/>`}).join("")}</svg>`:ring;
+  const mid=done?`<b class="gok">Megvan!</b><span>${e1>=amt?"már összegyűlt":"a beosztott műszakaiddal"}</span>`:`<b>${D?dnum(n2,"gdn"):n2}</b><span>műszak kell még</span>`;
+  $("gres").innerHTML=`<div class="gr"><div class="gring${done?" done":""}"><div class="gwrap">${ring2}<div class="gmid">${mid}</div></div>
+    <div class="glg"><div><i class="d1"></i><span>Eddig keresett<label class="gsince">${hday(t0)} óta ›<input type="date" id="gsince" value="${t0}" max="${today}" aria-label="Mióta gyűjtesz?"></label></span><b>${dnum(ft(e1),"gln")}</b></div><div><i class="d2"></i><span>Beosztva</span><b>${dnum(ft(f1),"gln")}</b></div><div><i class="d0"></i><span>Hiányzik</span><b>${dnum(ft(rest),"gln")}</b></div></div>
     <p class="gsm">Az egész összeg ${nf} műszak (${hh.toLocaleString("hu-HU")} óra) · ${ft(per)} / műszak · ${ft(r)} / óra</p></div>`+
    (avg&&!done?card("cal","Ha annyi műszakot kapsz, mint eddig",`kb. ${Math.max(1,Math.ceil(nr/avg))} hét <em>· átlag ${avg.toLocaleString("hu-HU",{maximumFractionDigits:1})} műszak/hét</em>`):"")+`</div>`;
   $("gsince").onchange=e=>{const v=e.target.value;if(/^\d{4}-\d\d-\d\d$/.test(v)&&v<=today){GOALS[GSEL].t=v;gSave();renderGoal()}};
